@@ -7,6 +7,7 @@ import { useStore } from "@/lib/store-context";
 import { Collection } from "@/types";
 import { Plus, Edit2, Trash2, X, Layers, Upload, Compass } from "lucide-react";
 import { compressImage } from "@/lib/image-utils";
+import { uploadToUploadcare } from "@/lib/uploadcare";
 
 export default function AdminCollectionsPage() {
   const { collections, addCollection, updateCollection, deleteCollection, products } = useStore();
@@ -79,10 +80,16 @@ export default function AdminCollectionsPage() {
   const handleFileUpload = async (file: File) => {
     if (!file) return;
     try {
-      const dataUrl = await compressImage(file, 2000, 1500, 0.82);
-      setCoverImageUrl(dataUrl);
+      const res = await uploadToUploadcare(file);
+      setCoverImageUrl(res.cdnUrl);
     } catch (err) {
-      console.error("Collection cover compression error:", err);
+      console.warn("Uploadcare direct upload failed, attempting local compression:", err);
+      try {
+        const dataUrl = await compressImage(file, 2000, 1500, 0.82);
+        setCoverImageUrl(dataUrl);
+      } catch (compErr) {
+        console.error("Local compression error:", compErr);
+      }
     }
   };
 

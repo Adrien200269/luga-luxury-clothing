@@ -7,6 +7,7 @@ import { useStore } from "@/lib/store-context";
 import { LookbookItem } from "@/types";
 import { Plus, Edit2, Trash2, X, Upload, Check, Compass } from "lucide-react";
 import { compressImage } from "@/lib/image-utils";
+import { uploadToUploadcare } from "@/lib/uploadcare";
 
 export default function AdminLookbookPage() {
   const { lookbookItems, addLookbookItem, updateLookbookItem, deleteLookbookItem, products } = useStore();
@@ -83,10 +84,16 @@ export default function AdminLookbookPage() {
   const handleFileUpload = async (file: File) => {
     if (!file) return;
     try {
-      const dataUrl = await compressImage(file, 2000, 1500, 0.82);
-      setImageUrl(dataUrl);
+      const res = await uploadToUploadcare(file);
+      setImageUrl(res.cdnUrl);
     } catch (err) {
-      console.error("Lookbook image compression error:", err);
+      console.warn("Uploadcare upload failed, attempting local compression:", err);
+      try {
+        const dataUrl = await compressImage(file, 2000, 1500, 0.82);
+        setImageUrl(dataUrl);
+      } catch (compErr) {
+        console.error("Lookbook image compression error:", compErr);
+      }
     }
   };
 

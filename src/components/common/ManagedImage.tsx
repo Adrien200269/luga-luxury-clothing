@@ -6,6 +6,8 @@ import { useStore } from "@/lib/store-context";
 import { cn } from "@/lib/utils";
 import { Camera, Compass } from "lucide-react";
 
+import { isVideoUrl } from "@/lib/uploadcare";
+
 interface ManagedImageProps {
   slotKey?: string;
   src?: string | null;
@@ -49,6 +51,7 @@ export const ManagedImage: React.FC<ManagedImageProps> = ({
   const resolvedSlotName = slotName || slotData?.label || slotKey || "EDITORIAL_SLOT";
   const resolvedAspectRatio = aspectRatio || slotData?.aspectRatio || "4/5";
   const resolvedResolution = resolution || slotData?.resolution || "1200×1500px";
+  const isVideo = isVideoUrl(resolvedSrc);
 
   // Reset error and loading state if image source updates
   useEffect(() => {
@@ -103,19 +106,37 @@ export const ManagedImage: React.FC<ManagedImageProps> = ({
           </div>
         )}
 
-        <img
-          src={resolvedSrc}
-          alt={alt || slotData?.altText || resolvedSlotName}
-          className={cn(
-            "w-full h-full object-cover transition-all duration-700 ease-out",
-            isLoaded ? "opacity-100 scale-100 blur-0" : "opacity-0 scale-[1.02] blur-[2px]",
-            "group-hover:scale-105",
-            imageClassName
-          )}
-          onLoad={() => setIsLoaded(true)}
-          onError={() => setImageError(true)}
-          loading={priority ? "eager" : "lazy"}
-        />
+        {isVideo ? (
+          <video
+            src={resolvedSrc}
+            autoPlay
+            loop
+            muted
+            playsInline
+            className={cn(
+              "w-full h-full object-cover transition-all duration-700 ease-out",
+              isLoaded ? "opacity-100 scale-100" : "opacity-0 scale-[1.02]",
+              "group-hover:scale-105",
+              imageClassName
+            )}
+            onLoadedData={() => setIsLoaded(true)}
+            onError={() => setImageError(true)}
+          />
+        ) : (
+          <img
+            src={resolvedSrc}
+            alt={alt || slotData?.altText || resolvedSlotName}
+            className={cn(
+              "w-full h-full object-cover transition-all duration-700 ease-out",
+              isLoaded ? "opacity-100 scale-100 blur-0" : "opacity-0 scale-[1.02] blur-[2px]",
+              "group-hover:scale-105",
+              imageClassName
+            )}
+            onLoad={() => setIsLoaded(true)}
+            onError={() => setImageError(true)}
+            loading={priority ? "eager" : "lazy"}
+          />
+        )}
         {/* Subtle Luxury Film Grain / Contrast Vignette Overlay */}
         <div className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-black/5 dark:ring-white/10" />
       </div>

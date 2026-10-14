@@ -20,6 +20,7 @@ import {
   RotateCw,
 } from "lucide-react";
 import { compressImage } from "@/lib/image-utils";
+import { uploadToUploadcare } from "@/lib/uploadcare";
 
 export default function AdminProductsPage() {
   const { products, collections, addProduct, updateProduct, deleteProduct } = useStore();
@@ -175,12 +176,20 @@ export default function AdminProductsPage() {
   const handleFileToUrl = async (file: File, target: "primary" | "hover" | "gallery") => {
     if (!file) return;
     try {
-      const dataUrl = await compressImage(file, 1600, 2000, 0.84);
-      if (target === "primary") setPrimaryImageUrl(dataUrl);
-      if (target === "hover") setHoverImageUrl(dataUrl);
-      if (target === "gallery") setGalleryUrls((prev) => [...prev, dataUrl]);
+      const res = await uploadToUploadcare(file);
+      if (target === "primary") setPrimaryImageUrl(res.cdnUrl);
+      if (target === "hover") setHoverImageUrl(res.cdnUrl);
+      if (target === "gallery") setGalleryUrls((prev) => [...prev, res.cdnUrl]);
     } catch (err) {
-      console.error("Product image compression error:", err);
+      console.warn("Uploadcare upload failed, falling back to local compression:", err);
+      try {
+        const dataUrl = await compressImage(file, 1600, 2000, 0.84);
+        if (target === "primary") setPrimaryImageUrl(dataUrl);
+        if (target === "hover") setHoverImageUrl(dataUrl);
+        if (target === "gallery") setGalleryUrls((prev) => [...prev, dataUrl]);
+      } catch (compErr) {
+        console.error("Product image compression error:", compErr);
+      }
     }
   };
 

@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "@prisma/client": "5.22.0",
+    "@uploadcare/react-uploader": "^1.17.0",
+    "@uploadcare/upload-client": "^6.23.0",
     "clsx": "^2.1.1",
     "lucide-react": "^0.453.0",
     "next": "14.2.18",
