@@ -1,5 +1,14 @@
 export type Role = 'CUSTOMER' | 'ADMIN';
 
+export interface AdminUser {
+  id: string;
+  email: string;
+  name: string;
+  role: 'ADMIN';
+  token?: string;
+  lastLogin?: string;
+}
+
 export type DeliveryZone =
   | 'VALLEY_INSIDE_RING_ROAD'
   | 'VALLEY_OUTSIDE_RING_ROAD'

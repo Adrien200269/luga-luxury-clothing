@@ -11,6 +11,7 @@ import {
   Product,
   SiteMediaSlot,
   SiteSettings,
+  AdminUser,
 } from "@/types";
 import {
   INITIAL_COLLECTIONS,
@@ -22,6 +23,12 @@ import {
 } from "@/lib/initial-data";
 
 interface StoreContextType {
+  // Admin Authentication
+  adminUser: AdminUser | null;
+  isAdminAuthenticated: boolean;
+  adminLogin: (email: string, pass: string) => Promise<{ success: boolean; error?: string }>;
+  adminLogout: () => void;
+
   // Site Media Slots
   mediaSlots: Record<string, SiteMediaSlot>;
   getMediaSlot: (slotKey: string) => SiteMediaSlot | undefined;
@@ -86,10 +93,12 @@ const STORAGE_KEYS = {
   ORDERS: "luga_orders_v1",
   SETTINGS: "luga_settings_v1",
   CART: "luga_cart_v1",
+  ADMIN_SESSION: "luga_admin_session_v1",
 };
 
 export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isLoaded, setIsLoaded] = useState(false);
+  const [adminUser, setAdminUser] = useState<AdminUser | null>(null);
 
   const [mediaSlots, setMediaSlots] = useState<Record<string, SiteMediaSlot>>(INITIAL_MEDIA_SLOTS);
   const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
@@ -105,6 +114,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Load from localStorage on mount
   useEffect(() => {
     try {
+      const savedAdmin = localStorage.getItem(STORAGE_KEYS.ADMIN_SESSION);
+      if (savedAdmin) {
+        setAdminUser(JSON.parse(savedAdmin));
+      }
       const savedSlots = localStorage.getItem(STORAGE_KEYS.SLOTS);
       if (savedSlots) {
         const parsed = JSON.parse(savedSlots);
@@ -423,9 +436,51 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     localStorage.clear();
   };
 
+  const adminLogin = async (email: string, pass: string) => {
+    const trimmedEmail = email.trim().toLowerCase();
+    const trimmedPass = pass.trim();
+
+    // Valid credentials:
+    // Email: admin@luga.studio (or adrien@luga.studio or admin)
+    // Pass: luga2026 (or luga or admin)
+    if (
+      (trimmedEmail === "admin@luga.studio" ||
+        trimmedEmail === "adrien@luga.studio" ||
+        trimmedEmail === "admin") &&
+      (trimmedPass === "luga2026" || trimmedPass === "luga" || trimmedPass === "admin")
+    ) {
+      const user: AdminUser = {
+        id: "usr-admin-kathmandu",
+        email: trimmedEmail.includes("@") ? trimmedEmail : "admin@luga.studio",
+        name: "Sabja Shrestha // Atelier Director",
+        role: "ADMIN",
+        lastLogin: new Date().toISOString(),
+      };
+      setAdminUser(user);
+      localStorage.setItem(STORAGE_KEYS.ADMIN_SESSION, JSON.stringify(user));
+      return { success: true };
+    }
+
+    return {
+      success: false,
+      error: "Invalid atelier credentials. Access denied.",
+    };
+  };
+
+  const adminLogout = () => {
+    setAdminUser(null);
+    localStorage.removeItem(STORAGE_KEYS.ADMIN_SESSION);
+  };
+
+  const isAdminAuthenticated = Boolean(adminUser);
+
   return (
     <StoreContext.Provider
       value={{
+        adminUser,
+        isAdminAuthenticated,
+        adminLogin,
+        adminLogout,
         mediaSlots,
         getMediaSlot,
         updateMediaSlot,
