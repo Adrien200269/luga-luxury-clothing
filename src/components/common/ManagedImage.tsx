@@ -42,6 +42,8 @@ export const ManagedImage: React.FC<ManagedImageProps> = ({
   const { getMediaSlot } = useStore();
   const [imageError, setImageError] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
+  const imgRef = React.useRef<HTMLImageElement>(null);
+  const videoRef = React.useRef<HTMLVideoElement>(null);
 
   // Look up slot data if slotKey is provided
   const slotData = slotKey ? getMediaSlot(slotKey) : undefined;
@@ -53,10 +55,28 @@ export const ManagedImage: React.FC<ManagedImageProps> = ({
   const resolvedResolution = resolution || slotData?.resolution || "1200×1500px";
   const isVideo = isVideoUrl(resolvedSrc);
 
-  // Reset error and loading state if image source updates
+  // Check if media is already loaded / cached, and set a safety fallback
   useEffect(() => {
     setImageError(false);
+
+    // Instant check for cached images
+    if (imgRef.current && imgRef.current.complete && imgRef.current.naturalWidth > 0) {
+      setIsLoaded(true);
+      return;
+    }
+    if (videoRef.current && videoRef.current.readyState >= 2) {
+      setIsLoaded(true);
+      return;
+    }
+
     setIsLoaded(false);
+
+    // Safety fallback: dismiss shimmer after 1.2s so user is never trapped in loading state
+    const timer = setTimeout(() => {
+      setIsLoaded(true);
+    }, 1200);
+
+    return () => clearTimeout(timer);
   }, [resolvedSrc]);
 
   // If we have a valid image source and it hasn't errored
@@ -74,7 +94,7 @@ export const ManagedImage: React.FC<ManagedImageProps> = ({
       >
         {/* Architectural Loading Skeleton Shimmer */}
         {!isLoaded && (
-          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-luga-surface/90 dark:bg-luga-darkSurface/90 overflow-hidden">
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-luga-surface/90 dark:bg-luga-darkSurface/90 overflow-hidden pointer-events-none transition-opacity duration-300">
             {/* Architectural Grid */}
             <div
               className="pointer-events-none absolute inset-0 opacity-[0.06] dark:opacity-[0.10]"
@@ -108,27 +128,31 @@ export const ManagedImage: React.FC<ManagedImageProps> = ({
 
         {isVideo ? (
           <video
+            ref={videoRef}
             src={resolvedSrc}
             autoPlay
             loop
             muted
             playsInline
             className={cn(
-              "w-full h-full object-cover transition-all duration-700 ease-out",
-              isLoaded ? "opacity-100 scale-100" : "opacity-0 scale-[1.02]",
+              "w-full h-full object-cover transition-opacity duration-300 ease-out",
+              isLoaded ? "opacity-100 scale-100" : "opacity-0 scale-[1.01]",
               "group-hover:scale-105",
               imageClassName
             )}
             onLoadedData={() => setIsLoaded(true)}
+            onCanPlay={() => setIsLoaded(true)}
             onError={() => setImageError(true)}
           />
         ) : (
           <img
+            ref={imgRef}
             src={resolvedSrc}
             alt={alt || slotData?.altText || resolvedSlotName}
+            decoding="async"
             className={cn(
-              "w-full h-full object-cover transition-all duration-700 ease-out",
-              isLoaded ? "opacity-100 scale-100 blur-0" : "opacity-0 scale-[1.02] blur-[2px]",
+              "w-full h-full object-cover transition-opacity duration-300 ease-out",
+              isLoaded ? "opacity-100 scale-100 blur-0" : "opacity-0 scale-[1.01]",
               "group-hover:scale-105",
               imageClassName
             )}
