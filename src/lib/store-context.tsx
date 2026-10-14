@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState, useMemo } from "react";
+import React, { createContext, useContext, useEffect, useState, useMemo, useCallback } from "react";
 import {
   CartItem,
   Collection,
@@ -81,6 +81,7 @@ interface StoreContextType {
   // Persistence status
   isLoaded: boolean;
   resetAllToDefault: () => void;
+  refreshFromDatabase: () => Promise<void>;
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
@@ -94,6 +95,7 @@ const STORAGE_KEYS = {
   SETTINGS: "luga_settings_v1",
   CART: "luga_cart_v1",
   ADMIN_SESSION: "luga_admin_session_v1",
+  SYNC_TIMESTAMP: "luga_sync_timestamp",
 };
 
 export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -111,118 +113,146 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
-  // Load from localStorage on mount
-  useEffect(() => {
+  // Cross-tab broadcast helper
+  const notifyOtherTabs = useCallback(() => {
     try {
-      const savedAdmin = localStorage.getItem(STORAGE_KEYS.ADMIN_SESSION);
-      if (savedAdmin) {
-        setAdminUser(JSON.parse(savedAdmin));
-      }
-      const savedSlots = localStorage.getItem(STORAGE_KEYS.SLOTS);
-      if (savedSlots) {
-        const parsed = JSON.parse(savedSlots);
-        // Merge with initial so newly added slots aren't lost
-        setMediaSlots({ ...INITIAL_MEDIA_SLOTS, ...parsed });
-      }
-
-      const savedProducts = localStorage.getItem(STORAGE_KEYS.PRODUCTS);
-      if (savedProducts) {
-        setProducts(JSON.parse(savedProducts));
-      }
-
-      const savedCollections = localStorage.getItem(STORAGE_KEYS.COLLECTIONS);
-      if (savedCollections) {
-        setCollections(JSON.parse(savedCollections));
-      }
-
-      const savedLookbook = localStorage.getItem(STORAGE_KEYS.LOOKBOOK);
-      if (savedLookbook) {
-        setLookbookItems(JSON.parse(savedLookbook));
-      }
-
-      const savedOrders = localStorage.getItem(STORAGE_KEYS.ORDERS);
-      if (savedOrders) {
-        setOrders(JSON.parse(savedOrders));
-      }
-
-      const savedSettings = localStorage.getItem(STORAGE_KEYS.SETTINGS);
-      if (savedSettings) {
-        setSettings({ ...INITIAL_SITE_SETTINGS, ...JSON.parse(savedSettings) });
-      }
-
-      const savedCart = localStorage.getItem(STORAGE_KEYS.CART);
-      if (savedCart) {
-        setCart(JSON.parse(savedCart));
-      }
-    } catch (err) {
-      console.error("LUGA Store hydration error:", err);
-    } finally {
-      setIsLoaded(true);
+      localStorage.setItem(STORAGE_KEYS.SYNC_TIMESTAMP, Date.now().toString());
+    } catch {}
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("luga_local_update"));
     }
   }, []);
 
-  // Save to localStorage whenever state updates
-  useEffect(() => {
-    if (!isLoaded) return;
+  // Fetch all latest data from backend Supabase PostgreSQL
+  const refreshFromDatabase = useCallback(async () => {
     try {
-      localStorage.setItem(STORAGE_KEYS.SLOTS, JSON.stringify(mediaSlots));
-    } catch (e) {
-      console.warn("Storage quota or error saving slots:", e);
-    }
-  }, [mediaSlots, isLoaded]);
+      const [slotsRes, prodsRes, colsRes, looksRes, setsRes, ordsRes] = await Promise.allSettled([
+        fetch("/api/slots").then((r) => r.json()),
+        fetch("/api/products").then((r) => r.json()),
+        fetch("/api/collections").then((r) => r.json()),
+        fetch("/api/lookbook").then((r) => r.json()),
+        fetch("/api/settings").then((r) => r.json()),
+        fetch("/api/orders").then((r) => r.json()),
+      ]);
 
+      if (slotsRes.status === "fulfilled" && slotsRes.value?.success && slotsRes.value?.data) {
+        setMediaSlots((prev) => ({ ...prev, ...slotsRes.value.data }));
+        try {
+          localStorage.setItem(STORAGE_KEYS.SLOTS, JSON.stringify({ ...INITIAL_MEDIA_SLOTS, ...slotsRes.value.data }));
+        } catch {}
+      }
+
+      if (prodsRes.status === "fulfilled" && prodsRes.value?.success && Array.isArray(prodsRes.value?.data) && prodsRes.value.data.length > 0) {
+        setProducts(prodsRes.value.data);
+        try {
+          localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(prodsRes.value.data));
+        } catch {}
+      }
+
+      if (colsRes.status === "fulfilled" && colsRes.value?.success && Array.isArray(colsRes.value?.data) && colsRes.value.data.length > 0) {
+        setCollections(colsRes.value.data);
+        try {
+          localStorage.setItem(STORAGE_KEYS.COLLECTIONS, JSON.stringify(colsRes.value.data));
+        } catch {}
+      }
+
+      if (looksRes.status === "fulfilled" && looksRes.value?.success && Array.isArray(looksRes.value?.data) && looksRes.value.data.length > 0) {
+        setLookbookItems(looksRes.value.data);
+        try {
+          localStorage.setItem(STORAGE_KEYS.LOOKBOOK, JSON.stringify(looksRes.value.data));
+        } catch {}
+      }
+
+      if (setsRes.status === "fulfilled" && setsRes.value?.success && setsRes.value?.data) {
+        setSettings((prev) => ({ ...prev, ...setsRes.value.data }));
+        try {
+          localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify({ ...INITIAL_SITE_SETTINGS, ...setsRes.value.data }));
+        } catch {}
+      }
+
+      if (ordsRes.status === "fulfilled" && ordsRes.value?.success && Array.isArray(ordsRes.value?.data) && ordsRes.value.data.length > 0) {
+        setOrders(ordsRes.value.data);
+        try {
+          localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(ordsRes.value.data));
+        } catch {}
+      }
+    } catch (err) {
+      console.warn("Database sync notice (offline or connecting):", err);
+    }
+  }, []);
+
+  // 1. Load from localStorage immediately on mount for zero-flash UI
   useEffect(() => {
-    if (!isLoaded) return;
     try {
-      localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products));
-    } catch (e) {
-      console.warn("Storage error saving products:", e);
-    }
-  }, [products, isLoaded]);
+      const savedAdmin = localStorage.getItem(STORAGE_KEYS.ADMIN_SESSION);
+      if (savedAdmin) setAdminUser(JSON.parse(savedAdmin));
 
+      const savedSlots = localStorage.getItem(STORAGE_KEYS.SLOTS);
+      if (savedSlots) setMediaSlots({ ...INITIAL_MEDIA_SLOTS, ...JSON.parse(savedSlots) });
+
+      const savedProducts = localStorage.getItem(STORAGE_KEYS.PRODUCTS);
+      if (savedProducts) setProducts(JSON.parse(savedProducts));
+
+      const savedCollections = localStorage.getItem(STORAGE_KEYS.COLLECTIONS);
+      if (savedCollections) setCollections(JSON.parse(savedCollections));
+
+      const savedLookbook = localStorage.getItem(STORAGE_KEYS.LOOKBOOK);
+      if (savedLookbook) setLookbookItems(JSON.parse(savedLookbook));
+
+      const savedOrders = localStorage.getItem(STORAGE_KEYS.ORDERS);
+      if (savedOrders) setOrders(JSON.parse(savedOrders));
+
+      const savedSettings = localStorage.getItem(STORAGE_KEYS.SETTINGS);
+      if (savedSettings) setSettings({ ...INITIAL_SITE_SETTINGS, ...JSON.parse(savedSettings) });
+
+      const savedCart = localStorage.getItem(STORAGE_KEYS.CART);
+      if (savedCart) setCart(JSON.parse(savedCart));
+    } catch (err) {
+      console.error("LUGA Store local hydration error:", err);
+    } finally {
+      setIsLoaded(true);
+    }
+
+    // Then pull live database content
+    refreshFromDatabase();
+  }, [refreshFromDatabase]);
+
+  // 2. Listen to storage changes from other tabs so changes reflect live
   useEffect(() => {
-    if (!isLoaded) return;
-    try {
-      localStorage.setItem(STORAGE_KEYS.COLLECTIONS, JSON.stringify(collections));
-    } catch (e) {
-      console.warn("Storage error saving collections:", e);
-    }
-  }, [collections, isLoaded]);
+    const handleStorageChange = (e: StorageEvent) => {
+      if (!e.key || e.key === STORAGE_KEYS.SYNC_TIMESTAMP) {
+        try {
+          const slots = localStorage.getItem(STORAGE_KEYS.SLOTS);
+          if (slots) setMediaSlots({ ...INITIAL_MEDIA_SLOTS, ...JSON.parse(slots) });
 
-  useEffect(() => {
-    if (!isLoaded) return;
-    try {
-      localStorage.setItem(STORAGE_KEYS.LOOKBOOK, JSON.stringify(lookbookItems));
-    } catch (e) {
-      console.warn("Storage error saving lookbook:", e);
-    }
-  }, [lookbookItems, isLoaded]);
+          const prods = localStorage.getItem(STORAGE_KEYS.PRODUCTS);
+          if (prods) setProducts(JSON.parse(prods));
 
-  useEffect(() => {
-    if (!isLoaded) return;
-    try {
-      localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(orders));
-    } catch (e) {
-      console.warn("Storage error saving orders:", e);
-    }
-  }, [orders, isLoaded]);
+          const cols = localStorage.getItem(STORAGE_KEYS.COLLECTIONS);
+          if (cols) setCollections(JSON.parse(cols));
 
-  useEffect(() => {
-    if (!isLoaded) return;
-    try {
-      localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
-    } catch (e) {
-      console.warn("Storage error saving settings:", e);
-    }
-  }, [settings, isLoaded]);
+          const looks = localStorage.getItem(STORAGE_KEYS.LOOKBOOK);
+          if (looks) setLookbookItems(JSON.parse(looks));
 
+          const sets = localStorage.getItem(STORAGE_KEYS.SETTINGS);
+          if (sets) setSettings({ ...INITIAL_SITE_SETTINGS, ...JSON.parse(sets) });
+
+          const ords = localStorage.getItem(STORAGE_KEYS.ORDERS);
+          if (ords) setOrders(JSON.parse(ords));
+        } catch {}
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
+
+  // Save cart changes
   useEffect(() => {
     if (!isLoaded) return;
     try {
       localStorage.setItem(STORAGE_KEYS.CART, JSON.stringify(cart));
-    } catch (e) {
-      console.warn("Storage error saving cart:", e);
-    }
+    } catch {}
   }, [cart, isLoaded]);
 
   // Media slot methods
@@ -243,29 +273,40 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         resolution: "1200x1500px",
         updatedAt: new Date().toISOString(),
       };
-      return {
-        ...prev,
-        [slotKey]: {
-          ...existing,
-          ...updates,
-          updatedAt: new Date().toISOString(),
-        },
+      const updated = {
+        ...existing,
+        ...updates,
+        updatedAt: new Date().toISOString(),
       };
+      const newSlots = { ...prev, [slotKey]: updated };
+      try {
+        localStorage.setItem(STORAGE_KEYS.SLOTS, JSON.stringify(newSlots));
+      } catch (e) {
+        console.warn("Storage quota limit reached for local cache:", e);
+      }
+      return newSlots;
     });
+
+    notifyOtherTabs();
+
+    // Persist to Supabase database via API
+    fetch("/api/slots", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ slotKey, ...updates }),
+    }).catch((err) => console.error("Database save slot error:", err));
   };
 
   const resetMediaSlot = (slotKey: string) => {
     const original = INITIAL_MEDIA_SLOTS[slotKey];
     if (original) {
-      setMediaSlots((prev) => ({
-        ...prev,
-        [slotKey]: original,
-      }));
-    } else {
-      setMediaSlots((prev) => {
-        const copy = { ...prev };
-        delete copy[slotKey];
-        return copy;
+      updateMediaSlot(slotKey, {
+        imageUrl: null,
+        heading: original.heading,
+        subHeading: original.subHeading,
+        ctaText: original.ctaText,
+        ctaLink: original.ctaLink,
+        altText: original.altText,
       });
     }
   };
@@ -277,18 +318,66 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       id: `prod-${Date.now()}`,
       createdAt: new Date().toISOString(),
     };
-    setProducts((prev) => [newProd, ...prev]);
+
+    setProducts((prev) => {
+      const updated = [newProd, ...prev];
+      try {
+        localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+
+    notifyOtherTabs();
+
+    // Persist to backend database
+    fetch("/api/products", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newProd),
+    })
+      .then((r) => r.json())
+      .then((res) => {
+        if (res.success && res.data?.id) {
+          setProducts((prev) => prev.map((p) => (p.id === newProd.id ? res.data : p)));
+        }
+      })
+      .catch((err) => console.error("Database save product error:", err));
+
     return newProd;
   };
 
   const updateProduct = (id: string, updates: Partial<Product>) => {
-    setProducts((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, ...updates } : p))
-    );
+    setProducts((prev) => {
+      const updated = prev.map((p) => (p.id === id ? { ...p, ...updates } : p));
+      try {
+        localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+
+    notifyOtherTabs();
+
+    fetch("/api/products", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, ...updates }),
+    }).catch((err) => console.error("Database update product error:", err));
   };
 
   const deleteProduct = (id: string) => {
-    setProducts((prev) => prev.filter((p) => p.id !== id));
+    setProducts((prev) => {
+      const updated = prev.filter((p) => p.id !== id);
+      try {
+        localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+
+    notifyOtherTabs();
+
+    fetch(`/api/products?id=${id}`, {
+      method: "DELETE",
+    }).catch((err) => console.error("Database delete product error:", err));
   };
 
   const getProductBySlug = (slug: string) => {
@@ -302,18 +391,65 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       id: `col-${Date.now()}`,
       createdAt: new Date().toISOString(),
     };
-    setCollections((prev) => [...prev, newCol]);
+
+    setCollections((prev) => {
+      const updated = [...prev, newCol];
+      try {
+        localStorage.setItem(STORAGE_KEYS.COLLECTIONS, JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+
+    notifyOtherTabs();
+
+    fetch("/api/collections", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newCol),
+    })
+      .then((r) => r.json())
+      .then((res) => {
+        if (res.success && res.data?.id) {
+          setCollections((prev) => prev.map((c) => (c.id === newCol.id ? res.data : c)));
+        }
+      })
+      .catch((err) => console.error("Database save collection error:", err));
+
     return newCol;
   };
 
   const updateCollection = (id: string, updates: Partial<Collection>) => {
-    setCollections((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, ...updates } : c))
-    );
+    setCollections((prev) => {
+      const updated = prev.map((c) => (c.id === id ? { ...c, ...updates } : c));
+      try {
+        localStorage.setItem(STORAGE_KEYS.COLLECTIONS, JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+
+    notifyOtherTabs();
+
+    fetch("/api/collections", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, ...updates }),
+    }).catch((err) => console.error("Database update collection error:", err));
   };
 
   const deleteCollection = (id: string) => {
-    setCollections((prev) => prev.filter((c) => c.id !== id));
+    setCollections((prev) => {
+      const updated = prev.filter((c) => c.id !== id);
+      try {
+        localStorage.setItem(STORAGE_KEYS.COLLECTIONS, JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+
+    notifyOtherTabs();
+
+    fetch(`/api/collections?id=${id}`, {
+      method: "DELETE",
+    }).catch((err) => console.error("Database delete collection error:", err));
   };
 
   // Lookbook methods
@@ -325,18 +461,65 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       id: `look-${Date.now()}`,
       createdAt: new Date().toISOString(),
     };
-    setLookbookItems((prev) => [...prev, newItem]);
+
+    setLookbookItems((prev) => {
+      const updated = [...prev, newItem];
+      try {
+        localStorage.setItem(STORAGE_KEYS.LOOKBOOK, JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+
+    notifyOtherTabs();
+
+    fetch("/api/lookbook", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newItem),
+    })
+      .then((r) => r.json())
+      .then((res) => {
+        if (res.success && res.data?.id) {
+          setLookbookItems((prev) => prev.map((item) => (item.id === newItem.id ? res.data : item)));
+        }
+      })
+      .catch((err) => console.error("Database save lookbook error:", err));
+
     return newItem;
   };
 
   const updateLookbookItem = (id: string, updates: Partial<LookbookItem>) => {
-    setLookbookItems((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, ...updates } : item))
-    );
+    setLookbookItems((prev) => {
+      const updated = prev.map((item) => (item.id === id ? { ...item, ...updates } : item));
+      try {
+        localStorage.setItem(STORAGE_KEYS.LOOKBOOK, JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+
+    notifyOtherTabs();
+
+    fetch("/api/lookbook", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, ...updates }),
+    }).catch((err) => console.error("Database update lookbook error:", err));
   };
 
   const deleteLookbookItem = (id: string) => {
-    setLookbookItems((prev) => prev.filter((item) => item.id !== id));
+    setLookbookItems((prev) => {
+      const updated = prev.filter((item) => item.id !== id);
+      try {
+        localStorage.setItem(STORAGE_KEYS.LOOKBOOK, JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+
+    notifyOtherTabs();
+
+    fetch(`/api/lookbook?id=${id}`, {
+      method: "DELETE",
+    }).catch((err) => console.error("Database delete lookbook error:", err));
   };
 
   // Order methods
@@ -350,7 +533,23 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       orderNumber: `LUG-2026-${randomSuffix}`,
       createdAt: new Date().toISOString(),
     };
-    setOrders((prev) => [newOrder, ...prev]);
+
+    setOrders((prev) => {
+      const updated = [newOrder, ...prev];
+      try {
+        localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+
+    notifyOtherTabs();
+
+    fetch("/api/orders", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newOrder),
+    }).catch((err) => console.error("Database create order error:", err));
+
     return newOrder;
   };
 
@@ -359,8 +558,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     status: OrderStatus,
     paymentStatus?: PaymentStatus
   ) => {
-    setOrders((prev) =>
-      prev.map((o) =>
+    setOrders((prev) => {
+      const updated = prev.map((o) =>
         o.id === orderId
           ? {
               ...o,
@@ -368,13 +567,39 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
               ...(paymentStatus ? { paymentStatus } : {}),
             }
           : o
-      )
-    );
+      );
+      try {
+        localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+
+    notifyOtherTabs();
+
+    fetch("/api/orders", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: orderId, orderStatus: status, paymentStatus }),
+    }).catch((err) => console.error("Database update order status error:", err));
   };
 
   // Settings methods
   const updateSettings = (updates: Partial<SiteSettings>) => {
-    setSettings((prev) => ({ ...prev, ...updates }));
+    setSettings((prev) => {
+      const updated = { ...prev, ...updates };
+      try {
+        localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+
+    notifyOtherTabs();
+
+    fetch("/api/settings", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(updates),
+    }).catch((err) => console.error("Database update settings error:", err));
   };
 
   // Cart methods
@@ -434,15 +659,13 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setSettings(INITIAL_SITE_SETTINGS);
     setCart([]);
     localStorage.clear();
+    notifyOtherTabs();
   };
 
   const adminLogin = async (email: string, pass: string) => {
     const trimmedEmail = email.trim().toLowerCase();
     const trimmedPass = pass.trim();
 
-    // Valid credentials:
-    // Email: admin@luga.studio (or adrien@luga.studio or admin)
-    // Pass: luga2026 (or luga or admin)
     if (
       (trimmedEmail === "admin@luga.studio" ||
         trimmedEmail === "adrien@luga.studio" ||
@@ -516,6 +739,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setIsSearchOpen,
         isLoaded,
         resetAllToDefault,
+        refreshFromDatabase,
       }}
     >
       {children}

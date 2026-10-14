@@ -18,7 +18,7 @@ import {
 
 export const Header: React.FC = () => {
   const pathname = usePathname();
-  const { cartCount, setIsCartOpen, setIsSearchOpen, getMediaSlot, settings } = useStore();
+  const { cartCount, setIsCartOpen, setIsSearchOpen, getMediaSlot, settings, collections } = useStore();
   const [menuDrawerOpen, setMenuDrawerOpen] = useState(false);
   const [collectionsDropdown, setCollectionsDropdown] = useState(false);
 
@@ -80,27 +80,16 @@ export const Header: React.FC = () => {
                     <div className="px-4 py-1 text-[9px] font-mono text-luga-muted/60 dark:text-luga-darkMuted/60 border-b border-luga-border/50 dark:border-luga-darkBorder/50 mb-2">
                       CURATED ARCHIVES
                     </div>
-                    <Link
-                      href="/collections/volume-1"
-                      onClick={() => setCollectionsDropdown(false)}
-                      className="block px-4 py-2 hover:bg-luga-surface dark:hover:bg-luga-darkSurface text-luga-ink dark:text-luga-darkInk text-[10px] tracking-wider"
-                    >
-                      VOLUME I: KATHMANDU ARCHIVE
-                    </Link>
-                    <Link
-                      href="/collections/core-archive"
-                      onClick={() => setCollectionsDropdown(false)}
-                      className="block px-4 py-2 hover:bg-luga-surface dark:hover:bg-luga-darkSurface text-luga-ink dark:text-luga-darkInk text-[10px] tracking-wider"
-                    >
-                      THE CORE STREETWEAR CAPSULE
-                    </Link>
-                    <Link
-                      href="/collections/himalayan-winter"
-                      onClick={() => setCollectionsDropdown(false)}
-                      className="block px-4 py-2 hover:bg-luga-surface dark:hover:bg-luga-darkSurface text-luga-ink dark:text-luga-darkInk text-[10px] tracking-wider"
-                    >
-                      HIMALAYAN MONOLITH // WINTER
-                    </Link>
+                    {collections.map((col) => (
+                      <Link
+                        key={col.id}
+                        href={`/collections/${col.slug}`}
+                        onClick={() => setCollectionsDropdown(false)}
+                        className="block px-4 py-2 hover:bg-luga-surface dark:hover:bg-luga-darkSurface text-luga-ink dark:text-luga-darkInk text-[10px] tracking-wider uppercase"
+                      >
+                        {col.title}
+                      </Link>
+                    ))}
                   </div>
                 )}
               </div>
@@ -231,38 +220,19 @@ export const Header: React.FC = () => {
                     NUMBERED VOLUMES
                   </div>
                   <div className="space-y-2">
-                    <Link
-                      href="/collections/volume-1"
-                      onClick={() => setMenuDrawerOpen(false)}
-                      className="block group py-1"
-                    >
-                      <div className="text-sm font-editorial text-luga-ink dark:text-luga-darkInk group-hover:text-luga-crimson dark:group-hover:text-luga-gold transition-colors">
-                        Volume I: Kathmandu Archive
-                      </div>
-                      <div className="text-[10px] text-luga-muted">Ancient brick courtyards & brutalist tailoring</div>
-                    </Link>
-
-                    <Link
-                      href="/collections/core-archive"
-                      onClick={() => setMenuDrawerOpen(false)}
-                      className="block group py-1"
-                    >
-                      <div className="text-sm font-editorial text-luga-ink dark:text-luga-darkInk group-hover:text-luga-crimson dark:group-hover:text-luga-gold transition-colors">
-                        The Core Streetwear Capsule
-                      </div>
-                      <div className="text-[10px] text-luga-muted">420 GSM custom-milled organic French terry</div>
-                    </Link>
-
-                    <Link
-                      href="/collections/himalayan-winter"
-                      onClick={() => setMenuDrawerOpen(false)}
-                      className="block group py-1"
-                    >
-                      <div className="text-sm font-editorial text-luga-ink dark:text-luga-darkInk group-hover:text-luga-crimson dark:group-hover:text-luga-gold transition-colors">
-                        Himalayan Monolith // Winter
-                      </div>
-                      <div className="text-[10px] text-luga-muted">Mustang yak wool & handloom Dhaka blends</div>
-                    </Link>
+                    {collections.map((col) => (
+                      <Link
+                        key={col.id}
+                        href={`/collections/${col.slug}`}
+                        onClick={() => setMenuDrawerOpen(false)}
+                        className="block group py-1"
+                      >
+                        <div className="text-sm font-editorial text-luga-ink dark:text-luga-darkInk group-hover:text-luga-crimson dark:group-hover:text-luga-gold transition-colors">
+                          {col.title}
+                        </div>
+                        <div className="text-[10px] text-luga-muted line-clamp-1">{col.description}</div>
+                      </Link>
+                    ))}
                   </div>
                 </div>
 

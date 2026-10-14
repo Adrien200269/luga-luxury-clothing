@@ -14,6 +14,7 @@ export default function HomePage() {
   const [activeLookbookIdx, setActiveLookbookIdx] = useState(0);
 
   const heroMainSlot = getMediaSlot("HERO_MAIN_BANNER");
+  const heroMobileSlot = getMediaSlot("HERO_MOBILE_BANNER");
   const splitLeftSlot = getMediaSlot("SPLIT_BANNER_LEFT");
   const splitRightSlot = getMediaSlot("SPLIT_BANNER_RIGHT");
   const heritageSlot = getMediaSlot("HERITAGE_STORY_BANNER");
@@ -30,15 +31,29 @@ export default function HomePage() {
       <section className="relative w-full min-h-[90vh] lg:min-h-[92vh] flex flex-col justify-end bg-luga-surface dark:bg-luga-darkSurface overflow-hidden border-b border-luga-border dark:border-luga-darkBorder">
         {/* Managed Hero Background Slot */}
         <div className="absolute inset-0 w-full h-full">
-          <ManagedImage
-            slotKey="HERO_MAIN_BANNER"
-            aspectRatio="16:9"
-            resolution="2560×1440px"
-            alt="LUGA Volume I Campaign"
-            className="w-full h-full border-none"
-            imageClassName="w-full h-full object-cover"
-            priority
-          />
+          <div className="hidden sm:block w-full h-full">
+            <ManagedImage
+              slotKey="HERO_MAIN_BANNER"
+              aspectRatio="16:9"
+              resolution="2560×1440px"
+              alt="LUGA Volume I Campaign"
+              className="w-full h-full border-none"
+              imageClassName="w-full h-full object-cover"
+              priority
+            />
+          </div>
+          <div className="block sm:hidden w-full h-full">
+            <ManagedImage
+              src={heroMobileSlot?.imageUrl || heroMainSlot?.imageUrl}
+              slotKey={heroMobileSlot?.imageUrl ? "HERO_MOBILE_BANNER" : "HERO_MAIN_BANNER"}
+              aspectRatio="4:5"
+              resolution="1080×1350px"
+              alt="LUGA Volume I Mobile Campaign"
+              className="w-full h-full border-none"
+              imageClassName="w-full h-full object-cover"
+              priority
+            />
+          </div>
           {/* Subtle gradient vignette for editorial legibility */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/20 pointer-events-none" />
         </div>
@@ -218,6 +233,7 @@ export default function HomePage() {
             >
               <div className="relative aspect-[4/5] overflow-hidden bg-luga-surface dark:bg-luga-darkSurface">
                 <ManagedImage
+                  src={col.coverImageUrl || (col.coverSlotKey ? getMediaSlot(col.coverSlotKey)?.imageUrl : undefined)}
                   slotKey={col.coverSlotKey || `COLLECTION_${col.id}`}
                   aspectRatio="4:5"
                   resolution="1200×1500px"

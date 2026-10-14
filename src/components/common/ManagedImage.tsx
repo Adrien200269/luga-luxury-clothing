@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { useStore } from "@/lib/store-context";
 import { cn } from "@/lib/utils";
@@ -48,6 +48,11 @@ export const ManagedImage: React.FC<ManagedImageProps> = ({
   const resolvedSlotName = slotName || slotData?.label || slotKey || "EDITORIAL_SLOT";
   const resolvedAspectRatio = aspectRatio || slotData?.aspectRatio || "4/5";
   const resolvedResolution = resolution || slotData?.resolution || "1200×1500px";
+
+  // Reset error state if image source updates
+  useEffect(() => {
+    setImageError(false);
+  }, [resolvedSrc]);
 
   // If we have a valid image source and it hasn't errored
   if (resolvedSrc && !imageError) {

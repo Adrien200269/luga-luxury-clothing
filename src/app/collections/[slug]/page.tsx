@@ -12,7 +12,7 @@ import { ArrowLeft, Compass } from "lucide-react";
 export default function CollectionDetailPage() {
   const params = useParams();
   const slug = params.slug as string;
-  const { collections, products } = useStore();
+  const { collections, products, getMediaSlot } = useStore();
 
   const collection = collections.find((c) => c.slug === slug);
 
@@ -47,6 +47,7 @@ export default function CollectionDetailPage() {
       <section className="relative w-full min-h-[50vh] sm:min-h-[60vh] flex flex-col justify-end bg-luga-surface dark:bg-luga-darkSurface border-b border-luga-border dark:border-luga-darkBorder overflow-hidden">
         <div className="absolute inset-0 w-full h-full">
           <ManagedImage
+            src={collection.coverImageUrl || (collection.coverSlotKey ? getMediaSlot(collection.coverSlotKey)?.imageUrl : undefined)}
             slotKey={collection.coverSlotKey || `COLLECTION_${collection.id}`}
             aspectRatio="16:9"
             resolution="2560×1440px"

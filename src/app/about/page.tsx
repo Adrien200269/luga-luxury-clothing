@@ -37,11 +37,12 @@ export default function AboutPage() {
           </div>
 
           <h1 className="font-editorial text-4xl sm:text-6xl lg:text-7xl uppercase font-light tracking-tight leading-tight">
-            THE VALLEY MANIFESTO
+            {heritageSlot?.heading || "THE VALLEY MANIFESTO"}
           </h1>
 
           <p className="font-mono text-xs sm:text-sm text-[#DDD] tracking-wider max-w-2xl mx-auto leading-relaxed">
-            Reinterpreting sacred Newar architecture and centuries-old pit-loom handcraft through the rebellious lens of luxury brutalist streetwear.
+            {heritageSlot?.subHeading ||
+              "Reinterpreting sacred Newar architecture and centuries-old pit-loom handcraft through the rebellious lens of luxury brutalist streetwear."}
           </p>
         </div>
       </section>

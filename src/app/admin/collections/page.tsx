@@ -6,6 +6,7 @@ import { ManagedImage } from "@/components/common/ManagedImage";
 import { useStore } from "@/lib/store-context";
 import { Collection } from "@/types";
 import { Plus, Edit2, Trash2, X, Layers, Upload } from "lucide-react";
+import { compressImage } from "@/lib/image-utils";
 
 export default function AdminCollectionsPage() {
   const { collections, addCollection, updateCollection, deleteCollection, products } = useStore();
@@ -67,13 +68,14 @@ export default function AdminCollectionsPage() {
     setIsModalOpen(false);
   };
 
-  const handleFileUpload = (file: File) => {
+  const handleFileUpload = async (file: File) => {
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setCoverImageUrl(e.target?.result as string);
-    };
-    reader.readAsDataURL(file);
+    try {
+      const dataUrl = await compressImage(file, 2000, 1500, 0.82);
+      setCoverImageUrl(dataUrl);
+    } catch (err) {
+      console.error("Collection cover compression error:", err);
+    }
   };
 
   return (

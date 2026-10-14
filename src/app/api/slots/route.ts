@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { prisma } from "@/services/db";
 
 export async function GET() {
   try {
@@ -32,14 +30,34 @@ export async function PUT(req: Request) {
       );
     }
 
+    // Clean data so non-model fields or undefined fields don't cause prisma errors
+    const allowedFields = [
+      "label",
+      "pageSection",
+      "imageUrl",
+      "altText",
+      "aspectRatio",
+      "resolution",
+      "heading",
+      "subHeading",
+      "ctaText",
+      "ctaLink",
+    ];
+    const updateData: Record<string, any> = {};
+    for (const key of allowedFields) {
+      if (data[key] !== undefined) {
+        updateData[key] = data[key];
+      }
+    }
+
     const updated = await prisma.siteMediaSlot.upsert({
       where: { slotKey },
-      update: data,
+      update: updateData,
       create: {
         slotKey,
         label: data.label || slotKey,
         pageSection: data.pageSection || "HOMEPAGE",
-        ...data,
+        ...updateData,
       },
     });
 

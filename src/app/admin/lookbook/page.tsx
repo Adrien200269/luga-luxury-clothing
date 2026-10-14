@@ -6,6 +6,7 @@ import { ManagedImage } from "@/components/common/ManagedImage";
 import { useStore } from "@/lib/store-context";
 import { LookbookItem } from "@/types";
 import { Plus, Edit2, Trash2, X, Upload, Check } from "lucide-react";
+import { compressImage } from "@/lib/image-utils";
 
 export default function AdminLookbookPage() {
   const { lookbookItems, addLookbookItem, updateLookbookItem, deleteLookbookItem, products } = useStore();
@@ -71,13 +72,14 @@ export default function AdminLookbookPage() {
     );
   };
 
-  const handleFileUpload = (file: File) => {
+  const handleFileUpload = async (file: File) => {
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setImageUrl(e.target?.result as string);
-    };
-    reader.readAsDataURL(file);
+    try {
+      const dataUrl = await compressImage(file, 2000, 1500, 0.82);
+      setImageUrl(dataUrl);
+    } catch (err) {
+      console.error("Lookbook image compression error:", err);
+    }
   };
 
   return (

@@ -17,6 +17,7 @@ import {
   Sparkles,
   Shirt,
 } from "lucide-react";
+import { compressImage } from "@/lib/image-utils";
 
 export default function AdminProductsPage() {
   const { products, collections, addProduct, updateProduct, deleteProduct } = useStore();
@@ -160,16 +161,16 @@ export default function AdminProductsPage() {
     setIsModalOpen(false);
   };
 
-  const handleFileToUrl = (file: File, target: "primary" | "hover" | "gallery") => {
+  const handleFileToUrl = async (file: File, target: "primary" | "hover" | "gallery") => {
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const dataUrl = e.target?.result as string;
+    try {
+      const dataUrl = await compressImage(file, 1600, 2000, 0.84);
       if (target === "primary") setPrimaryImageUrl(dataUrl);
       if (target === "hover") setHoverImageUrl(dataUrl);
       if (target === "gallery") setGalleryUrls((prev) => [...prev, dataUrl]);
-    };
-    reader.readAsDataURL(file);
+    } catch (err) {
+      console.error("Product image compression error:", err);
+    }
   };
 
   // Filtered list

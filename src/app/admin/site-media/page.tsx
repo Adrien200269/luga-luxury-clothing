@@ -15,6 +15,8 @@ import {
   ExternalLink,
 } from "lucide-react";
 
+import { compressImage } from "@/lib/image-utils";
+
 export default function AdminSiteMediaPage() {
   const { mediaSlots, updateMediaSlot, resetMediaSlot } = useStore();
   const [selectedSection, setSelectedSection] = useState<string>("ALL");
@@ -27,17 +29,15 @@ export default function AdminSiteMediaPage() {
       ? slotList
       : slotList.filter((s) => s.pageSection === selectedSection);
 
-  // File to base64 DataURL handler
-  const handleFileUpload = (slotKey: string, file: File) => {
+  // File to compressed DataURL handler
+  const handleFileUpload = async (slotKey: string, file: File) => {
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const dataUrl = e.target?.result as string;
-      if (dataUrl) {
-        updateMediaSlot(slotKey, { imageUrl: dataUrl });
-      }
-    };
-    reader.readAsDataURL(file);
+    try {
+      const compressedDataUrl = await compressImage(file, 1920, 1920, 0.82);
+      updateMediaSlot(slotKey, { imageUrl: compressedDataUrl });
+    } catch (err) {
+      console.error("Image compression error:", err);
+    }
   };
 
   return (

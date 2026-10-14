@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { prisma } from "@/services/db";
 
 export async function GET() {
   try {
@@ -50,6 +48,38 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: true, data: order }, { status: 201 });
   } catch (error: any) {
     console.error("API POST /api/orders error:", error);
+    return NextResponse.json(
+      { success: false, error: error.message },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PATCH(req: Request) {
+  try {
+    const body = await req.json();
+    const { id, orderStatus, paymentStatus } = body;
+
+    if (!id) {
+      return NextResponse.json(
+        { success: false, error: "Order id is required" },
+        { status: 400 }
+      );
+    }
+
+    const updateData: any = {};
+    if (orderStatus) updateData.orderStatus = orderStatus;
+    if (paymentStatus) updateData.paymentStatus = paymentStatus;
+
+    const order = await prisma.order.update({
+      where: { id },
+      data: updateData,
+      include: { items: true },
+    });
+
+    return NextResponse.json({ success: true, data: order });
+  } catch (error: any) {
+    console.error("API PATCH /api/orders error:", error);
     return NextResponse.json(
       { success: false, error: error.message },
       { status: 500 }
