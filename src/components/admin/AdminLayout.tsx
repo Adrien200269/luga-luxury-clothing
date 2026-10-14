@@ -24,7 +24,6 @@ import {
   ShieldCheck,
   ArrowRight,
   User,
-  RotateCw,
 } from "lucide-react";
 
 export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({
@@ -39,8 +38,6 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({
     adminLogout,
     isLoaded,
     isSyncing,
-    supabaseStatus,
-    refreshFromDatabase,
   } = useStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -318,38 +315,6 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({
                 SIGN OUT
               </button>
             </div>
-
-            {/* Live Supabase Connection & Sync Controller */}
-            <button
-              onClick={() => refreshFromDatabase()}
-              disabled={isSyncing}
-              title="Click to pull latest state directly from Supabase PostgreSQL"
-              className={`hidden sm:flex items-center gap-1.5 font-mono text-[10px] tracking-wider uppercase px-2.5 py-1 border transition-colors cursor-pointer ${
-                isSyncing
-                  ? "bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400"
-                  : supabaseStatus === "connected"
-                  ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20"
-                  : "bg-red-500/10 border-red-500/30 text-red-600 dark:text-red-400 hover:bg-red-500/20"
-              }`}
-            >
-              <span
-                className={`w-1.5 h-1.5 rounded-full ${
-                  isSyncing
-                    ? "bg-amber-500 animate-spin"
-                    : supabaseStatus === "connected"
-                    ? "bg-emerald-500 animate-pulse"
-                    : "bg-red-500"
-                }`}
-              />
-              <span>
-                {isSyncing
-                  ? "SYNCING SUPABASE..."
-                  : supabaseStatus === "connected"
-                  ? "SUPABASE LIVE"
-                  : "RECONNECT SUPABASE"}
-              </span>
-              <RotateCw className={`w-3 h-3 ml-0.5 ${isSyncing ? "animate-spin" : ""}`} />
-            </button>
 
             <ThemeToggle />
           </div>
