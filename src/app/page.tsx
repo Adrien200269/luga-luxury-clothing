@@ -19,6 +19,7 @@ export default function HomePage() {
   const splitLeftSlot = getMediaSlot("SPLIT_BANNER_LEFT");
   const splitRightSlot = getMediaSlot("SPLIT_BANNER_RIGHT");
   const heritageSlot = getMediaSlot("HERITAGE_STORY_BANNER");
+  const lookbookHighlightSlot = getMediaSlot("LOOKBOOK_HIGHLIGHT_BANNER");
 
   const featuredProducts = products.filter((p) => p.isFeatured || p.isNewArrival).slice(0, 8);
   const activeLook = lookbookItems[activeLookbookIdx] || lookbookItems[0];
@@ -270,6 +271,36 @@ export default function HomePage() {
       {/* 5. INTERACTIVE LOOKBOOK TEASER & "SHOP THE LOOK" */}
       <section className="w-full bg-[#111111] dark:bg-[#0D0D0D] text-white py-20 sm:py-28 border-t border-black/40 dark:border-white/10">
         <div className="max-w-[1920px] mx-auto px-4 sm:px-8">
+          {/* Featured Cinematic Lookbook Film Reel */}
+          {lookbookHighlightSlot?.imageUrl && (
+            <ScrollReveal direction="up" duration={850} className="mb-14 border border-white/10 overflow-hidden relative group">
+              <div className="relative aspect-video sm:aspect-[21/9] w-full bg-black">
+                <ManagedImage
+                  slotKey="LOOKBOOK_HIGHLIGHT_BANNER"
+                  aspectRatio="21:9"
+                  resolution="2560×1100px Cinematic"
+                  alt={lookbookHighlightSlot.altText || "Lookbook Film Feature"}
+                  className="w-full h-full border-none"
+                  imageClassName="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30 pointer-events-none" />
+                <div className="absolute bottom-6 left-6 sm:bottom-10 sm:left-10 z-10 max-w-xl space-y-2 pointer-events-none">
+                  <span className="font-mono text-[9px] sm:text-[10px] tracking-mega text-luga-gold uppercase">
+                    FEATURED 35MM CINEMATIC FILM REEL
+                  </span>
+                  <h3 className="font-editorial text-2xl sm:text-4xl uppercase text-white">
+                    {lookbookHighlightSlot.heading || "VOLUME I: PATAN ARCHIVE FILM"}
+                  </h3>
+                  {lookbookHighlightSlot.subHeading && (
+                    <p className="font-mono text-xs text-[#A3A09A]">
+                      {lookbookHighlightSlot.subHeading}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </ScrollReveal>
+          )}
+
           <ScrollReveal direction="up" className="flex flex-col md:flex-row md:items-end justify-between border-b border-white/10 pb-6 mb-12 gap-6">
             <div>
               <span className="font-mono text-[10px] tracking-mega uppercase text-luga-gold">

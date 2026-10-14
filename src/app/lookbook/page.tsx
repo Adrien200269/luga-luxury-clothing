@@ -10,8 +10,9 @@ import { formatNpr } from "@/lib/utils";
 import { ShoppingBag, ArrowRight } from "lucide-react";
 
 export default function LookbookPage() {
-  const { lookbookItems, products, addToCart } = useStore();
+  const { lookbookItems, products, addToCart, getMediaSlot } = useStore();
   const [selectedVolume, setSelectedVolume] = useState<string>("ALL");
+  const highlightSlot = getMediaSlot("LOOKBOOK_HIGHLIGHT_BANNER");
 
   const volumes = ["ALL", "VOLUME I: KATHMANDU ARCHIVE"];
 
@@ -53,6 +54,37 @@ export default function LookbookPage() {
           </div>
         </div>
       </section>
+
+      {/* Featured Cinematic Lookbook Film Banner */}
+      {highlightSlot?.imageUrl && (
+        <section className="border-b border-luga-border dark:border-luga-darkBorder bg-black overflow-hidden relative">
+          <div className="max-w-[1920px] mx-auto relative aspect-video sm:aspect-[21/9] w-full">
+            <ManagedImage
+              slotKey="LOOKBOOK_HIGHLIGHT_BANNER"
+              aspectRatio="21:9"
+              resolution="2560×1100px Cinematic"
+              alt={highlightSlot.altText || "Lookbook Film"}
+              className="w-full h-full border-none"
+              imageClassName="w-full h-full object-cover"
+              priority
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30 pointer-events-none" />
+            <div className="absolute bottom-6 left-6 sm:bottom-12 sm:left-12 z-10 max-w-xl space-y-2 pointer-events-none text-white">
+              <span className="font-mono text-[9px] sm:text-[10px] tracking-mega text-luga-gold uppercase">
+                FEATURED 35MM CINEMATIC FILM REEL
+              </span>
+              <h2 className="font-editorial text-2xl sm:text-4xl uppercase tracking-tight">
+                {highlightSlot.heading || "VOLUME I: PATAN ARCHIVE FILM"}
+              </h2>
+              {highlightSlot.subHeading && (
+                <p className="font-mono text-xs text-[#A3A09A]">
+                  {highlightSlot.subHeading}
+                </p>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Lookbook Frames Grid */}
       <section className="max-w-[1920px] mx-auto px-4 sm:px-8 py-16 sm:py-24 space-y-24">

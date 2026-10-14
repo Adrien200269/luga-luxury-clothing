@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { useStore } from "@/lib/store-context";
 import { cn } from "@/lib/utils";
-import { Camera, Compass } from "lucide-react";
+import { Camera, Compass, Volume2, VolumeX, Play, Pause } from "lucide-react";
 
 import { isVideoUrl } from "@/lib/uploadcare";
 
@@ -42,6 +42,8 @@ export const ManagedImage: React.FC<ManagedImageProps> = ({
   const { getMediaSlot } = useStore();
   const [imageError, setImageError] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(true);
   const imgRef = React.useRef<HTMLImageElement>(null);
   const videoRef = React.useRef<HTMLVideoElement>(null);
 
@@ -54,6 +56,51 @@ export const ManagedImage: React.FC<ManagedImageProps> = ({
   const resolvedAspectRatio = aspectRatio || slotData?.aspectRatio || "4/5";
   const resolvedResolution = resolution || slotData?.resolution || "1200×1500px";
   const isVideo = isVideoUrl(resolvedSrc);
+
+  // Handle video autoplay policy & reload
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !isVideo || !resolvedSrc) return;
+
+    // Critical for browser autoplay: must set DOM properties directly
+    video.defaultMuted = true;
+    video.muted = isMuted;
+    video.playsInline = true;
+
+    try {
+      video.load();
+    } catch {}
+
+    const playVideo = async () => {
+      try {
+        await video.play();
+        setIsPlaying(true);
+      } catch (err) {
+        console.warn("Autoplay notice:", err);
+        // Autoplay policy prevented playback: force muted & retry
+        video.muted = true;
+        setIsMuted(true);
+        try {
+          await video.play();
+          setIsPlaying(true);
+        } catch {
+          setIsPlaying(false);
+        }
+      }
+    };
+
+    if (video.readyState >= 2) {
+      setIsLoaded(true);
+      playVideo();
+    } else {
+      const handleCanPlay = () => {
+        setIsLoaded(true);
+        playVideo();
+      };
+      video.addEventListener("canplay", handleCanPlay, { once: true });
+      return () => video.removeEventListener("canplay", handleCanPlay);
+    }
+  }, [resolvedSrc, isVideo]);
 
   // Check if media is already loaded / cached, and set a safety fallback
   useEffect(() => {
@@ -78,6 +125,33 @@ export const ManagedImage: React.FC<ManagedImageProps> = ({
 
     return () => clearTimeout(timer);
   }, [resolvedSrc]);
+
+  const togglePlay = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (video.paused) {
+      video.play().then(() => setIsPlaying(true)).catch(() => {});
+    } else {
+      video.pause();
+      setIsPlaying(false);
+    }
+  };
+
+  const toggleSound = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const video = videoRef.current;
+    if (!video) return;
+
+    const nextMuted = !isMuted;
+    video.muted = nextMuted;
+    setIsMuted(nextMuted);
+
+    if (video.paused) {
+      video.play().then(() => setIsPlaying(true)).catch(() => {});
+    }
+  };
 
   // If we have a valid image source and it hasn't errored
   if (resolvedSrc && !imageError) {
@@ -127,23 +201,67 @@ export const ManagedImage: React.FC<ManagedImageProps> = ({
         )}
 
         {isVideo ? (
-          <video
-            ref={videoRef}
-            src={resolvedSrc}
-            autoPlay
-            loop
-            muted
-            playsInline
-            className={cn(
-              "w-full h-full object-cover transition-opacity duration-300 ease-out",
-              isLoaded ? "opacity-100 scale-100" : "opacity-0 scale-[1.01]",
-              "group-hover:scale-105",
-              imageClassName
+          <div className="relative w-full h-full">
+            <video
+              ref={videoRef}
+              src={resolvedSrc}
+              autoPlay
+              loop
+              muted
+              playsInline
+              preload="auto"
+              className={cn(
+                "w-full h-full object-cover transition-opacity duration-300 ease-out cursor-pointer",
+                isLoaded ? "opacity-100 scale-100" : "opacity-0 scale-[1.01]",
+                "group-hover:scale-105",
+                imageClassName
+              )}
+              onClick={togglePlay}
+              onLoadedData={() => setIsLoaded(true)}
+              onCanPlay={() => setIsLoaded(true)}
+              onPlay={() => setIsPlaying(true)}
+              onPause={() => setIsPlaying(false)}
+              onError={() => setImageError(true)}
+            />
+
+            {/* Video Audio & Playback Controls Overlay (Bottom Right) */}
+            <div className="absolute bottom-3 right-3 z-20 flex items-center gap-1.5 opacity-90 hover:opacity-100 transition-opacity">
+              <button
+                type="button"
+                onClick={togglePlay}
+                className="p-1.5 bg-black/75 hover:bg-black text-white border border-white/20 transition-colors shadow-sm"
+                title={isPlaying ? "Pause Video" : "Play Video"}
+                aria-label="Toggle Play"
+              >
+                {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+              </button>
+              <button
+                type="button"
+                onClick={toggleSound}
+                className="p-1.5 bg-black/75 hover:bg-black text-white border border-white/20 transition-colors shadow-sm"
+                title={isMuted ? "Unmute Sound" : "Mute Sound"}
+                aria-label="Toggle Audio"
+              >
+                {isMuted ? (
+                  <VolumeX className="w-3.5 h-3.5" />
+                ) : (
+                  <Volume2 className="w-3.5 h-3.5 text-luga-gold" />
+                )}
+              </button>
+            </div>
+
+            {/* Large Center Play Overlay When Paused */}
+            {!isPlaying && isLoaded && (
+              <div
+                onClick={togglePlay}
+                className="absolute inset-0 z-10 flex items-center justify-center bg-black/30 backdrop-blur-[1px] cursor-pointer"
+              >
+                <div className="w-12 h-12 flex items-center justify-center rounded-full bg-black/80 text-white border border-white/30 hover:scale-110 transition-transform shadow-lg">
+                  <Play className="w-5 h-5 ml-0.5" />
+                </div>
+              </div>
             )}
-            onLoadedData={() => setIsLoaded(true)}
-            onCanPlay={() => setIsLoaded(true)}
-            onError={() => setImageError(true)}
-          />
+          </div>
         ) : (
           <img
             ref={imgRef}
