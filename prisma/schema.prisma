@@ -1,0 +1,203 @@
+// LUGA // Contemporary Nepali Luxury Streetwear & Artisanal Fashion
+// Prisma Schema configured for Supabase PostgreSQL
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  CUSTOMER
+  ADMIN
+}
+
+enum DeliveryZone {
+  VALLEY_INSIDE_RING_ROAD
+  VALLEY_OUTSIDE_RING_ROAD
+  OUTSIDE_VALLEY
+}
+
+enum PaymentMethod {
+  COD
+  ESEWA
+  KHALTI
+  FONEPAY
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  DISPATCHED
+  DELIVERED
+  CANCELLED
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  phone     String?
+  role      Role     @default(CUSTOMER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  orders    Order[]
+
+  @@map("users")
+}
+
+model SiteMediaSlot {
+  id          String   @id @default(uuid())
+  slotKey     String   @unique // e.g., 'HERO_MAIN_BANNER', 'SPLIT_BANNER_LEFT'
+  label       String   // Human readable label for admin UI
+  pageSection String   // 'HOMEPAGE', 'BRAND_ASSETS', 'COLLECTIONS', 'ABOUT', 'FOOTER'
+  imageUrl    String?  // URL or DataURL/base64 of uploaded image
+  altText     String?
+  aspectRatio String   @default("4:5") // e.g., '16:9', '4:5', '1:1'
+  resolution  String   @default("1200x1500px")
+  heading     String?  // Optional headline over banner
+  subHeading  String?
+  ctaText     String?  // Button label
+  ctaLink     String?  // Button target URL
+  updatedAt   DateTime @updatedAt
+
+  @@map("site_media_slots")
+}
+
+model Collection {
+  id            String    @id @default(uuid())
+  title         String
+  slug          String    @unique
+  volumeNumber  String    // e.g. "VOLUME I", "VOLUME II", "CORE ARCHIVE"
+  description   String?
+  coverImageUrl String?   // Slot reference or direct URL
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  products      Product[]
+
+  @@map("collections")
+}
+
+model Product {
+  id                 String           @id @default(uuid())
+  title              String
+  slug               String           @unique
+  sku                String           @unique
+  description        String
+  craftStory         String?          // Kathmandu / Patan artisanal weaving details
+  fabricGsm          String?          // e.g., "450 GSM Heavyweight French Terry"
+  priceNpr           Int              // In Nepali Rupees (Rs.)
+  compareAtPriceNpr  Int?             // Strike-through original price
+  category           String           // "outerwear", "knitwear", "shirts", "trousers", "accessories"
+  collectionId       String?
+  collection         Collection?      @relation(fields: [collectionId], references: [id])
+  primaryImageUrl    String?          // Managed slot or image URL
+  hoverImageUrl      String?          // Secondary hover image
+  galleryUrls        String[]         // JSON / array of additional detail image slots
+  isFeatured         Boolean          @default(false)
+  isNewArrival       Boolean          @default(true)
+  isArchived         Boolean          @default(false)
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  variants           ProductVariant[]
+  orderItems         OrderItem[]
+
+  @@map("products")
+}
+
+model ProductVariant {
+  id            String   @id @default(uuid())
+  productId     String
+  product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  size          String   // XS, S, M, L, XL, XXL
+  stockQuantity Int      @default(0)
+  sku           String   @unique
+
+  @@map("product_variants")
+}
+
+model LookbookItem {
+  id                 String   @id @default(uuid())
+  title              String
+  volume             String   // e.g. "VOLUME I: PATAN ARCHIVE"
+  imageUrl           String?  // Image slot or URL
+  caption            String?
+  featuredProductIds String[] // IDs of tagged products to "Shop the Look"
+  sortOrder          Int      @default(0)
+  createdAt          DateTime @default(now())
+
+  @@map("lookbook_items")
+}
+
+model Order {
+  id           String        @id @default(uuid())
+  orderNumber  String        @unique // e.g. "LUG-2026-8941"
+  userId       String?
+  user         User?         @relation(fields: [userId], references: [id])
+  customerName String
+  phone        String
+  email        String
+  city         String        @default("Kathmandu")
+  deliveryZone DeliveryZone
+  toleAddress  String        // Tole / Ward / Street
+  landmark     String?
+  paymentMethod PaymentMethod
+  paymentStatus PaymentStatus @default(PENDING)
+  orderStatus  OrderStatus   @default(PENDING)
+  subtotalNpr  Int
+  shippingNpr  Int
+  totalNpr     Int
+  notes        String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  items        OrderItem[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id              String  @id @default(uuid())
+  orderId         String
+  order           Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId       String?
+  product         Product? @relation(fields: [productId], references: [id])
+  productTitle    String
+  size            String
+  quantity        Int     @default(1)
+  priceNpr        Int
+  primaryImageUrl String?
+
+  @@map("order_items")
+}
+
+model SiteSettings {
+  id                         String   @id @default("singleton")
+  announcementText           String   @default("VOLUME I: KATHMANDU ARCHIVE LIVE NOW — COMPLIMENTARY DELIVERY INSIDE RING ROAD ON ORDERS ABOVE NPR 10,000")
+  announcementActive         Boolean  @default(true)
+  currencyCode               String   @default("NPR")
+  currencySymbol             String   @default("रू")
+  shippingInsideRingRoadNpr  Int      @default(100)
+  shippingOutsideRingRoadNpr Int      @default(150)
+  shippingOutsideValleyNpr   Int      @default(250)
+  freeShippingThresholdNpr   Int      @default(10000)
+  whatsappNumber             String   @default("+977 9801234567")
+  instagramHandle            String   @default("@luga.studio")
+  studioAddress              String   @default("Patan Durbar Craft Quarter, Lalitpur, Kathmandu Valley, Nepal")
+  fonepayQrImageUrl          String?
+  updatedAt                  DateTime @updatedAt
+
+  @@map("site_settings")
+}

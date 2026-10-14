@@ -1,0 +1,38 @@
+# Dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# Testing
+/coverage
+
+# Next.js build output
+/.next/
+/out/
+
+# Production
+/build
+
+# Environment variables & secrets (CRITICAL: DO NOT COMMIT REAL CREDENTIALS)
+.env
+.env*.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# TypeScript cache
+*.tsbuildinfo
+next-env.d.ts
+
+# Antigravity local agent config
+/.agent/
+/.agents/

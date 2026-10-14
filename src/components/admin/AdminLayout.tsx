@@ -1,0 +1,211 @@
+"use client";
+
+import React, { useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { ThemeToggle } from "@/components/common/ThemeToggle";
+import { useStore } from "@/lib/store-context";
+import {
+  LayoutDashboard,
+  Image as ImageIcon,
+  Shirt,
+  Layers,
+  BookOpen,
+  ShoppingBag,
+  Settings,
+  ExternalLink,
+  Menu,
+  X,
+  Compass,
+  Sparkles,
+} from "lucide-react";
+
+export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  const pathname = usePathname();
+  const { orders } = useStore();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const pendingOrdersCount = orders.filter((o) => o.orderStatus === "PENDING").length;
+
+  const navItems = [
+    {
+      label: "Overview",
+      href: "/admin",
+      icon: LayoutDashboard,
+    },
+    {
+      label: "Global Site Media",
+      href: "/admin/site-media",
+      icon: ImageIcon,
+      badge: "CORE",
+    },
+    {
+      label: "Clothes & Products",
+      href: "/admin/products",
+      icon: Shirt,
+    },
+    {
+      label: "Volumes & Collections",
+      href: "/admin/collections",
+      icon: Layers,
+    },
+    {
+      label: "Lookbook Archive",
+      href: "/admin/lookbook",
+      icon: BookOpen,
+    },
+    {
+      label: "Customer Orders",
+      href: "/admin/orders",
+      icon: ShoppingBag,
+      badge: pendingOrdersCount > 0 ? `${pendingOrdersCount}` : undefined,
+    },
+    {
+      label: "Settings & Marquee",
+      href: "/admin/settings",
+      icon: Settings,
+    },
+  ];
+
+  return (
+    <div className="min-h-screen flex bg-luga-surface/30 dark:bg-[#070707] text-luga-ink dark:text-luga-darkInk">
+      {/* Mobile Sidebar Backdrop */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/60 lg:hidden backdrop-blur-sm"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar Navigation */}
+      <aside
+        className={`fixed lg:sticky top-0 inset-y-0 left-0 z-50 w-72 bg-luga-bg dark:bg-[#0F0F0F] border-r border-luga-border dark:border-luga-darkBorder flex flex-col justify-between transition-transform duration-300 lg:translate-x-0 ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <div>
+          {/* Brand Header */}
+          <div className="p-6 border-b border-luga-border dark:border-luga-darkBorder flex items-center justify-between">
+            <Link href="/admin" className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-luga-ink dark:bg-luga-darkInk text-white dark:text-black flex items-center justify-center font-editorial font-bold text-lg">
+                L
+              </div>
+              <div>
+                <div className="font-editorial text-xl font-bold tracking-widest uppercase">
+                  LUGA CMS
+                </div>
+                <div className="font-mono text-[9px] tracking-mega text-luga-crimson dark:text-luga-gold uppercase">
+                  KATHMANDU ATELIER
+                </div>
+              </div>
+            </Link>
+
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className="lg:hidden p-1 text-luga-muted hover:text-luga-ink"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Nav Items */}
+          <nav className="p-4 space-y-1 font-mono text-xs">
+            <div className="px-3 py-2 text-[9px] uppercase tracking-mega text-luga-muted dark:text-luga-darkMuted">
+              EDITORIAL CONTROL
+            </div>
+
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = pathname === item.href;
+
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setSidebarOpen(false)}
+                  className={`flex items-center justify-between px-3 py-2.5 transition-colors ${
+                    isActive
+                      ? "bg-luga-ink text-white dark:bg-luga-darkInk dark:text-black font-semibold"
+                      : "text-luga-muted dark:text-luga-darkMuted hover:bg-luga-surface dark:hover:bg-luga-darkSurface hover:text-luga-ink dark:hover:text-luga-darkInk"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Icon className="w-4 h-4 flex-shrink-0" />
+                    <span className="tracking-wider uppercase">{item.label}</span>
+                  </div>
+
+                  {item.badge && (
+                    <span
+                      className={`px-1.5 py-0.5 text-[9px] tracking-wider uppercase font-bold ${
+                        isActive
+                          ? "bg-white/20 text-white dark:bg-black/20 dark:text-black"
+                          : "bg-luga-crimson text-white dark:bg-luga-gold dark:text-black"
+                      }`}
+                    >
+                      {item.badge}
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
+
+        {/* Bottom Actions: View Storefront & Studio Info */}
+        <div className="p-4 border-t border-luga-border dark:border-luga-darkBorder space-y-3 font-mono text-xs">
+          <Link
+            href="/"
+            target="_blank"
+            className="w-full py-2.5 px-3 border border-luga-border hover:border-luga-ink dark:border-luga-darkBorder dark:hover:border-luga-darkInk flex items-center justify-center gap-2 uppercase tracking-ultra text-luga-ink dark:text-luga-darkInk hover:bg-luga-surface dark:hover:bg-luga-darkSurface transition-colors"
+          >
+            <span>VIEW LIVE STORE</span>
+            <ExternalLink className="w-3.5 h-3.5" />
+          </Link>
+
+          <div className="p-3 bg-luga-surface/50 dark:bg-luga-darkSurface/50 text-[10px] text-luga-muted space-y-1">
+            <div className="flex items-center gap-1.5 text-luga-ink dark:text-luga-darkInk font-semibold">
+              <Compass className="w-3 h-3 text-luga-crimson dark:text-luga-gold" />
+              <span>LUGA PRODUCTION CMS</span>
+            </div>
+            <div>PATAN DURBAR CRAFT QUARTER</div>
+            <div>CURRENCY: NPR (रू)</div>
+          </div>
+        </div>
+      </aside>
+
+      {/* Main Admin Content Area */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Top Navbar */}
+        <header className="h-16 sm:h-20 bg-luga-bg/95 dark:bg-[#0A0A0A]/95 backdrop-blur-md border-b border-luga-border dark:border-luga-darkBorder px-6 sm:px-10 flex items-center justify-between sticky top-0 z-30">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="lg:hidden p-2 -ml-2 text-luga-ink dark:text-luga-darkInk"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+            <div className="font-mono text-xs uppercase tracking-ultra text-luga-muted dark:text-luga-darkMuted hidden sm:block">
+              ADMIN CMS // NEPAL STUDIO PANEL
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <div className="hidden sm:flex items-center gap-1 font-mono text-[10px] tracking-wider uppercase px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span>LOCAL PERSISTENT STORE ACTIVE</span>
+            </div>
+
+            <ThemeToggle />
+          </div>
+        </header>
+
+        {/* Page Content */}
+        <main className="flex-1 p-6 sm:p-10 max-w-[1920px] w-full mx-auto">
+          {children}
+        </main>
+      </div>
+    </div>
+  );
+};
