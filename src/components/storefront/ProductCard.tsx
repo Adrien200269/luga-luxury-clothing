@@ -77,8 +77,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           )}
         </div>
 
-        {/* Quick Size Selector on Hover (Desktop & Mobile) */}
-        <div className="absolute inset-x-0 bottom-0 bg-luga-bg/95 dark:bg-luga-darkBg/95 backdrop-blur-md border-t border-luga-border dark:border-luga-darkBorder p-2.5 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out z-20">
+        {/* Quick Size Selector on Hover (Desktop only, mobile navigates directly) */}
+        <div className="hidden sm:block absolute inset-x-0 bottom-0 bg-luga-bg/95 dark:bg-luga-darkBg/95 backdrop-blur-md border-t border-luga-border dark:border-luga-darkBorder p-2.5 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out z-20">
           <div className="flex items-center justify-between mb-1.5 px-1">
             <span className="font-mono text-[9px] uppercase tracking-wider text-luga-muted dark:text-luga-darkMuted">
               QUICK ADD SIZES
@@ -116,13 +116,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       </div>
 
       {/* Product Meta */}
-      <div className="mt-3.5 space-y-1">
-        <div className="flex items-center justify-between text-[10px] font-mono tracking-wider uppercase text-luga-muted dark:text-luga-darkMuted">
-          <span>{product.category}</span>
-          <span className="opacity-70">{product.sku}</span>
+      <div className="mt-2.5 sm:mt-3.5 space-y-1">
+        <div className="flex items-center justify-between text-[9px] sm:text-[10px] font-mono tracking-wider uppercase text-luga-muted dark:text-luga-darkMuted">
+          <span className="truncate mr-1">{product.category}</span>
+          <span className="opacity-70 flex-shrink-0">{product.sku}</span>
         </div>
 
-        <h3 className="font-editorial text-base sm:text-lg text-luga-ink dark:text-luga-darkInk hover:text-luga-crimson dark:hover:text-luga-gold transition-colors leading-snug">
+        <h3 className="font-editorial text-sm sm:text-base lg:text-lg text-luga-ink dark:text-luga-darkInk hover:text-luga-crimson dark:hover:text-luga-gold transition-colors leading-snug line-clamp-2 min-h-[2.2rem] sm:min-h-[2.6rem]">
           <Link href={`/product/${product.slug}`}>{product.title}</Link>
         </h3>
 

@@ -21,19 +21,19 @@ export const Footer: React.FC = () => {
   return (
     <footer className="w-full bg-[#111111] dark:bg-[#0D0D0D] text-[#E5E3DF] border-t border-black/40 dark:border-white/10 transition-colors">
       {/* LUGA ENCLAVE / COMMUNITY BANNER */}
-      <div className="border-b border-white/10 py-16 px-6 sm:px-12">
+      <div className="border-b border-white/10 py-12 sm:py-16 px-4 sm:px-12">
         <div className="max-w-4xl mx-auto text-center space-y-4">
           <span className="font-mono text-[10px] tracking-mega uppercase text-luga-gold">
             LUGA ENCLAVE // PRIVATE ARCHIVE ACCESS
           </span>
-          <h2 className="font-editorial text-3xl sm:text-5xl text-white font-light">
+          <h2 className="font-editorial text-2xl sm:text-4xl lg:text-5xl text-white font-light break-words">
             Become a Patron of Contemporary Nepali Streetwear
           </h2>
           <p className="text-xs sm:text-sm font-mono tracking-wider text-[#A3A09A] max-w-xl mx-auto leading-relaxed">
             Gain priority invitations to capsule drops, bespoke Dhaka made-to-order garments, and private salon viewings in Patan.
           </p>
 
-          <form onSubmit={handleSubscribe} className="mt-8 max-w-md mx-auto flex items-stretch">
+          <form onSubmit={handleSubscribe} className="mt-6 sm:mt-8 max-w-md mx-auto flex flex-col sm:flex-row items-stretch gap-2 sm:gap-0">
             {subscribed ? (
               <div className="w-full py-3 px-4 bg-white/10 border border-luga-gold text-luga-gold font-mono text-xs flex items-center justify-center gap-2">
                 <Check className="w-4 h-4" />
@@ -51,7 +51,7 @@ export const Footer: React.FC = () => {
                 />
                 <button
                   type="submit"
-                  className="px-6 bg-white text-black font-mono text-xs uppercase tracking-ultra hover:bg-luga-gold hover:text-black transition-colors flex items-center gap-2"
+                  className="px-6 py-3 bg-white text-black font-mono text-xs uppercase tracking-ultra hover:bg-luga-gold hover:text-black transition-colors flex items-center justify-center gap-2"
                 >
                   <span>JOIN</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -63,7 +63,7 @@ export const Footer: React.FC = () => {
       </div>
 
       {/* Main Footer Directory */}
-      <div className="max-w-[1920px] mx-auto px-6 sm:px-12 py-16 grid grid-cols-1 md:grid-cols-4 gap-12 font-mono text-xs">
+      <div className="max-w-[1920px] mx-auto px-4 sm:px-12 py-12 sm:py-16 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 sm:gap-12 font-mono text-xs">
         {/* Brand Column */}
         <div className="space-y-4">
           <div className="font-editorial text-3xl uppercase tracking-widest text-white">
@@ -164,11 +164,11 @@ export const Footer: React.FC = () => {
       </div>
 
       {/* Bottom Bar */}
-      <div className="border-t border-white/10 py-6 px-6 sm:px-12 flex flex-col sm:flex-row items-center justify-between text-[10px] font-mono text-[#73706A] tracking-wider gap-4">
+      <div className="border-t border-white/10 py-6 px-4 sm:px-12 flex flex-col sm:flex-row items-center justify-between text-[10px] font-mono text-[#73706A] tracking-wider gap-4 text-center sm:text-left">
         <div>
           © {new Date().getFullYear()} LUGA STUDIO KATHMANDU. ALL ARCHIVAL RIGHTS RESERVED.
         </div>
-        <div className="flex items-center gap-6">
+        <div className="flex flex-wrap items-center justify-center sm:justify-end gap-3 sm:gap-6 text-center sm:text-right">
           <span>CURRENCY: NPR (रू)</span>
           <span>MADE IN NEPAL</span>
           <span>RASTAH.CO INSPIRED ARCHITECTURE</span>

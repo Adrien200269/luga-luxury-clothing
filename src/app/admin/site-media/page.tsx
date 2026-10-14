@@ -13,6 +13,7 @@ import {
   Image as ImageIcon,
   HelpCircle,
   ExternalLink,
+  Compass,
 } from "lucide-react";
 
 import { compressImage } from "@/lib/image-utils";
@@ -21,6 +22,7 @@ export default function AdminSiteMediaPage() {
   const { mediaSlots, updateMediaSlot, resetMediaSlot } = useStore();
   const [selectedSection, setSelectedSection] = useState<string>("ALL");
   const [copiedSlotKey, setCopiedSlotKey] = useState<string | null>(null);
+  const [compressingSlot, setCompressingSlot] = useState<string | null>(null);
 
   const slotList = Object.values(mediaSlots);
 
@@ -33,10 +35,13 @@ export default function AdminSiteMediaPage() {
   const handleFileUpload = async (slotKey: string, file: File) => {
     if (!file) return;
     try {
+      setCompressingSlot(slotKey);
       const compressedDataUrl = await compressImage(file, 1920, 1920, 0.82);
       updateMediaSlot(slotKey, { imageUrl: compressedDataUrl });
     } catch (err) {
       console.error("Image compression error:", err);
+    } finally {
+      setCompressingSlot(null);
     }
   };
 
@@ -64,7 +69,7 @@ export default function AdminSiteMediaPage() {
         </div>
 
         {/* Section Navigation Tabs */}
-        <div className="flex flex-wrap gap-2 font-mono text-[11px] tracking-wider uppercase border-b border-luga-border/60 dark:border-luga-darkBorder/60 pb-3">
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar sm:flex-wrap pb-2 sm:pb-3 border-b border-luga-border/60 dark:border-luga-darkBorder/60 font-mono text-[11px] tracking-wider uppercase">
           {[
             { id: "ALL", label: "All Visual Slots" },
             { id: "HOMEPAGE", label: "Homepage Banners" },
@@ -75,7 +80,7 @@ export default function AdminSiteMediaPage() {
             <button
               key={tab.id}
               onClick={() => setSelectedSection(tab.id)}
-              className={`px-3.5 py-2 border transition-colors ${
+              className={`px-3.5 py-2 border transition-colors shrink-0 ${
                 selectedSection === tab.id
                   ? "bg-luga-ink text-white border-luga-ink dark:bg-luga-darkInk dark:text-black dark:border-luga-darkInk font-bold"
                   : "border-luga-border dark:border-luga-darkBorder hover:border-luga-ink text-luga-ink dark:text-luga-darkInk"
@@ -142,13 +147,25 @@ export default function AdminSiteMediaPage() {
                     <label className="text-[10px] text-luga-muted uppercase tracking-wider block">
                       UPLOAD IMAGE FILE (INSTANT PREVIEW)
                     </label>
-                    <div className="flex items-center gap-3">
-                      <label className="flex-1 cursor-pointer py-2.5 px-4 bg-luga-surface hover:bg-luga-surfaceHover dark:bg-luga-darkSurface dark:hover:bg-luga-darkSurfaceHover border border-luga-border dark:border-luga-darkBorder text-center text-luga-ink dark:text-luga-darkInk uppercase tracking-wider text-[11px] flex items-center justify-center gap-2 transition-colors">
-                        <Upload className="w-3.5 h-3.5" />
-                        <span>CHOOSE LOCAL IMAGE FILE</span>
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+                      <label className={`flex-1 cursor-pointer py-2.5 px-4 bg-luga-surface hover:bg-luga-surfaceHover dark:bg-luga-darkSurface dark:hover:bg-luga-darkSurfaceHover border border-luga-border dark:border-luga-darkBorder text-center text-luga-ink dark:text-luga-darkInk uppercase tracking-wider text-[11px] flex items-center justify-center gap-2 transition-colors ${
+                        compressingSlot === slot.slotKey ? "opacity-75 cursor-wait" : ""
+                      }`}>
+                        {compressingSlot === slot.slotKey ? (
+                          <>
+                            <Compass className="w-3.5 h-3.5 animate-spin-slow text-luga-crimson dark:text-luga-gold" />
+                            <span>OPTIMIZING & ENCODING...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="w-3.5 h-3.5" />
+                            <span>CHOOSE LOCAL IMAGE FILE</span>
+                          </>
+                        )}
                         <input
                           type="file"
                           accept="image/*"
+                          disabled={compressingSlot === slot.slotKey}
                           className="hidden"
                           onChange={(e) => {
                             const file = e.target.files?.[0];
@@ -160,7 +177,7 @@ export default function AdminSiteMediaPage() {
                       {slot.imageUrl && (
                         <button
                           onClick={() => resetMediaSlot(slot.slotKey)}
-                          className="py-2.5 px-3 border border-luga-border dark:border-luga-darkBorder hover:border-red-500 hover:text-red-500 text-luga-muted transition-colors flex items-center gap-1.5"
+                          className="py-2.5 px-3 border border-luga-border dark:border-luga-darkBorder hover:border-red-500 hover:text-red-500 text-luga-muted transition-colors flex items-center justify-center gap-1.5"
                           title="Reset to architectural wireframe"
                         >
                           <RotateCcw className="w-3.5 h-3.5" />
@@ -210,7 +227,7 @@ export default function AdminSiteMediaPage() {
                         <label className="text-[10px] text-luga-muted uppercase">
                           CTA BUTTON LABEL & LINK
                         </label>
-                        <div className="flex gap-2">
+                        <div className="flex flex-col sm:flex-row gap-2">
                           <input
                             type="text"
                             value={slot.ctaText || ""}
@@ -218,7 +235,7 @@ export default function AdminSiteMediaPage() {
                             onChange={(e) =>
                               updateMediaSlot(slot.slotKey, { ctaText: e.target.value })
                             }
-                            className="w-1/2 bg-transparent border border-luga-border dark:border-luga-darkBorder p-2 text-xs text-luga-ink dark:text-luga-darkInk focus:outline-none"
+                            className="w-full sm:w-1/2 bg-transparent border border-luga-border dark:border-luga-darkBorder p-2 text-xs text-luga-ink dark:text-luga-darkInk focus:outline-none"
                           />
                           <input
                             type="text"
@@ -227,7 +244,7 @@ export default function AdminSiteMediaPage() {
                             onChange={(e) =>
                               updateMediaSlot(slot.slotKey, { ctaLink: e.target.value })
                             }
-                            className="w-1/2 bg-transparent border border-luga-border dark:border-luga-darkBorder p-2 text-xs text-luga-ink dark:text-luga-darkInk focus:outline-none"
+                            className="w-full sm:w-1/2 bg-transparent border border-luga-border dark:border-luga-darkBorder p-2 text-xs text-luga-ink dark:text-luga-darkInk focus:outline-none"
                           />
                         </div>
                       </div>

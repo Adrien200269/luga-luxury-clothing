@@ -39,6 +39,7 @@ export const ManagedImage: React.FC<ManagedImageProps> = ({
 }) => {
   const { getMediaSlot } = useStore();
   const [imageError, setImageError] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   // Look up slot data if slotKey is provided
   const slotData = slotKey ? getMediaSlot(slotKey) : undefined;
@@ -49,9 +50,10 @@ export const ManagedImage: React.FC<ManagedImageProps> = ({
   const resolvedAspectRatio = aspectRatio || slotData?.aspectRatio || "4/5";
   const resolvedResolution = resolution || slotData?.resolution || "1200×1500px";
 
-  // Reset error state if image source updates
+  // Reset error and loading state if image source updates
   useEffect(() => {
     setImageError(false);
+    setIsLoaded(false);
   }, [resolvedSrc]);
 
   // If we have a valid image source and it hasn't errored
@@ -67,13 +69,50 @@ export const ManagedImage: React.FC<ManagedImageProps> = ({
         }}
         onClick={onClick}
       >
+        {/* Architectural Loading Skeleton Shimmer */}
+        {!isLoaded && (
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-luga-surface/90 dark:bg-luga-darkSurface/90 overflow-hidden">
+            {/* Architectural Grid */}
+            <div
+              className="pointer-events-none absolute inset-0 opacity-[0.06] dark:opacity-[0.10]"
+              style={{
+                backgroundImage: `
+                  linear-gradient(to right, currentColor 1px, transparent 1px),
+                  linear-gradient(to bottom, currentColor 1px, transparent 1px)
+                `,
+                backgroundSize: "20px 20px",
+              }}
+            />
+
+            {/* Continuous Diagonal Shimmer Beam */}
+            <div className="pointer-events-none absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/25 dark:via-white/5 to-transparent" />
+
+            {/* Corner Framing Marks */}
+            <div className="pointer-events-none absolute top-2 left-2 w-2.5 h-2.5 border-t border-l border-luga-muted/40 dark:border-luga-darkMuted/40" />
+            <div className="pointer-events-none absolute top-2 right-2 w-2.5 h-2.5 border-t border-r border-luga-muted/40 dark:border-luga-darkMuted/40" />
+            <div className="pointer-events-none absolute bottom-2 left-2 w-2.5 h-2.5 border-b border-l border-luga-muted/40 dark:border-luga-darkMuted/40" />
+            <div className="pointer-events-none absolute bottom-2 right-2 w-2.5 h-2.5 border-b border-r border-luga-muted/40 dark:border-luga-darkMuted/40" />
+
+            {/* Center Compass Reticle Pulse */}
+            <div className="relative flex flex-col items-center gap-1.5 opacity-60">
+              <Compass className="w-5 h-5 text-luga-crimson dark:text-luga-gold animate-spin-slow stroke-[1.2]" />
+              <span className="font-mono text-[8px] tracking-mega uppercase text-luga-muted dark:text-luga-darkMuted">
+                LUGA ARCHIVE
+              </span>
+            </div>
+          </div>
+        )}
+
         <img
           src={resolvedSrc}
           alt={alt || slotData?.altText || resolvedSlotName}
           className={cn(
-            "w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105",
+            "w-full h-full object-cover transition-all duration-700 ease-out",
+            isLoaded ? "opacity-100 scale-100 blur-0" : "opacity-0 scale-[1.02] blur-[2px]",
+            "group-hover:scale-105",
             imageClassName
           )}
+          onLoad={() => setIsLoaded(true)}
           onError={() => setImageError(true)}
           loading={priority ? "eager" : "lazy"}
         />

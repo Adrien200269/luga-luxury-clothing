@@ -88,7 +88,7 @@ export default function AdminOrdersPage() {
             />
           </div>
 
-          <div className="flex flex-wrap gap-2">
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar sm:flex-wrap pb-1 sm:pb-0 w-full sm:w-auto">
             {[
               { id: "ALL", label: "All Orders" },
               { id: "PENDING", label: "Pending" },
@@ -186,11 +186,11 @@ export default function AdminOrdersPage() {
 
         {/* Order Details Modal */}
         {selectedOrder && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm overflow-y-auto">
-            <div className="bg-luga-bg dark:bg-[#121212] border border-luga-border dark:border-luga-darkBorder max-w-3xl w-full p-6 sm:p-8 shadow-2xl relative my-8 font-mono text-xs">
+          <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-sm overflow-y-auto">
+            <div className="bg-luga-bg dark:bg-[#121212] border border-luga-border dark:border-luga-darkBorder max-w-3xl w-full max-h-[92vh] overflow-y-auto p-5 sm:p-8 shadow-2xl relative my-auto font-mono text-xs">
               <button
                 onClick={() => setSelectedOrder(null)}
-                className="absolute top-5 right-5 text-luga-muted hover:text-luga-ink"
+                className="absolute top-4 right-4 text-luga-muted hover:text-luga-ink"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -199,7 +199,7 @@ export default function AdminOrdersPage() {
                 <span className="text-[10px] tracking-mega uppercase text-luga-crimson dark:text-luga-gold">
                   ORDER SPECIFICATION
                 </span>
-                <h2 className="font-editorial text-3xl uppercase tracking-tight text-luga-ink dark:text-luga-darkInk mt-1">
+                <h2 className="font-editorial text-2xl sm:text-3xl uppercase tracking-tight text-luga-ink dark:text-luga-darkInk mt-1 break-words">
                   {selectedOrder.orderNumber}
                 </h2>
                 <div className="text-[10px] text-luga-muted mt-1">
@@ -233,7 +233,7 @@ export default function AdminOrdersPage() {
                   )}
                 </div>
 
-                <div className="pt-2 flex items-center gap-4 border-t border-luga-border/50 text-[10px]">
+                <div className="pt-2 flex flex-wrap items-center gap-2 sm:gap-4 border-t border-luga-border/50 text-[10px]">
                   <span>PAYMENT:</span>
                   {(["PENDING", "PAID", "FAILED"] as PaymentStatus[]).map((ps) => (
                     <button

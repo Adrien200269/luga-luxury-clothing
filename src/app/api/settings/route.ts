@@ -1,6 +1,35 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/services/db";
 
+function sanitizeSettingsData(data: Record<string, any>) {
+  const sanitized: Record<string, any> = {};
+
+  if (data.announcementText !== undefined) sanitized.announcementText = String(data.announcementText);
+  if (data.announcementActive !== undefined) sanitized.announcementActive = Boolean(data.announcementActive);
+  if (data.currencyCode !== undefined) sanitized.currencyCode = String(data.currencyCode);
+  if (data.currencySymbol !== undefined) sanitized.currencySymbol = String(data.currencySymbol);
+  
+  if (data.shippingInsideRingRoadNpr !== undefined) {
+    sanitized.shippingInsideRingRoadNpr = Math.round(Number(data.shippingInsideRingRoadNpr) || 100);
+  }
+  if (data.shippingOutsideRingRoadNpr !== undefined) {
+    sanitized.shippingOutsideRingRoadNpr = Math.round(Number(data.shippingOutsideRingRoadNpr) || 150);
+  }
+  if (data.shippingOutsideValleyNpr !== undefined) {
+    sanitized.shippingOutsideValleyNpr = Math.round(Number(data.shippingOutsideValleyNpr) || 250);
+  }
+  if (data.freeShippingThresholdNpr !== undefined) {
+    sanitized.freeShippingThresholdNpr = Math.round(Number(data.freeShippingThresholdNpr) || 10000);
+  }
+  
+  if (data.whatsappNumber !== undefined) sanitized.whatsappNumber = String(data.whatsappNumber);
+  if (data.instagramHandle !== undefined) sanitized.instagramHandle = String(data.instagramHandle);
+  if (data.studioAddress !== undefined) sanitized.studioAddress = String(data.studioAddress);
+  if (data.fonepayQrImageUrl !== undefined) sanitized.fonepayQrImageUrl = data.fonepayQrImageUrl || null;
+
+  return sanitized;
+}
+
 export async function GET() {
   try {
     let settings = await prisma.siteSettings.findFirst({
@@ -28,14 +57,14 @@ export async function GET() {
 export async function PUT(req: Request) {
   try {
     const body = await req.json();
-    const { id, updatedAt, ...updates } = body;
+    const sanitizedData = sanitizeSettingsData(body);
 
     const settings = await prisma.siteSettings.upsert({
       where: { id: "singleton" },
-      update: updates,
+      update: sanitizedData,
       create: {
         id: "singleton",
-        ...updates,
+        ...sanitizedData,
       },
     });
 

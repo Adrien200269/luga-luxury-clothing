@@ -6,6 +6,7 @@ import Link from "next/link";
 import { StorefrontLayout } from "@/components/storefront/StorefrontLayout";
 import { ProductCard } from "@/components/storefront/ProductCard";
 import { ManagedImage } from "@/components/common/ManagedImage";
+import { ScrollReveal } from "@/components/common/ScrollReveal";
 import { useStore } from "@/lib/store-context";
 import { ArrowLeft, Compass } from "lucide-react";
 
@@ -58,7 +59,7 @@ export default function CollectionDetailPage() {
           <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent pointer-events-none" />
         </div>
 
-        <div className="relative z-10 max-w-[1920px] mx-auto px-6 sm:px-12 py-12 lg:py-16 text-white space-y-3 w-full">
+        <div className="relative z-10 max-w-[1920px] mx-auto px-4 sm:px-12 py-10 lg:py-16 text-white space-y-3 w-full">
           <Link
             href="/shop"
             className="inline-flex items-center gap-2 font-mono text-[10px] tracking-mega uppercase text-luga-gold hover:underline"
@@ -72,7 +73,7 @@ export default function CollectionDetailPage() {
             <span>{collection.volumeNumber} // LIMITED RUN</span>
           </div>
 
-          <h1 className="font-editorial text-4xl sm:text-6xl lg:text-7xl uppercase tracking-tight font-light">
+          <h1 className="font-editorial text-3xl sm:text-6xl lg:text-7xl uppercase tracking-tight font-light break-words">
             {collection.title}
           </h1>
 
@@ -83,8 +84,8 @@ export default function CollectionDetailPage() {
       </section>
 
       {/* Collection Products */}
-      <section className="max-w-[1920px] mx-auto px-4 sm:px-8 py-16 sm:py-24">
-        <div className="flex items-center justify-between border-b border-luga-border dark:border-luga-darkBorder pb-4 mb-10 font-mono text-xs">
+      <section className="max-w-[1920px] mx-auto px-4 sm:px-8 py-10 sm:py-24">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-luga-border dark:border-luga-darkBorder pb-4 mb-8 sm:mb-10 font-mono text-xs gap-1">
           <span className="uppercase tracking-wider text-luga-muted dark:text-luga-darkMuted">
             {collectionProducts.length} GARMENTS IN THIS VOLUME
           </span>
@@ -99,8 +100,10 @@ export default function CollectionDetailPage() {
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 sm:gap-x-8 gap-y-10 sm:gap-y-14">
-            {collectionProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
+            {collectionProducts.map((product, idx) => (
+              <ScrollReveal key={product.id} direction="up" delay={(idx % 4) * 70} duration={650}>
+                <ProductCard product={product} />
+              </ScrollReveal>
             ))}
           </div>
         )}

@@ -114,22 +114,22 @@ export const Header: React.FC = () => {
           </div>
 
           {/* CENTER: LUGA Wordmark / Logo (Guaranteed Centered, Protected From Overlap) */}
-          <div className="flex-shrink-0 text-center px-2 sm:px-4">
+          <div className="flex-shrink-0 text-center px-1 sm:px-4 max-w-[130px] sm:max-w-none">
             <Link href="/" className="inline-block group">
               {logoDarkSlot?.imageUrl || logoLightSlot?.imageUrl ? (
-                <div className="h-8 sm:h-10 flex items-center justify-center">
+                <div className="h-7 sm:h-10 flex items-center justify-center">
                   <img
                     src={logoDarkSlot?.imageUrl || logoLightSlot?.imageUrl || ""}
                     alt="LUGA"
-                    className="max-h-full w-auto object-contain"
+                    className="max-h-full max-w-full object-contain"
                   />
                 </div>
               ) : (
                 <div className="flex flex-col items-center">
-                  <span className="font-editorial text-2xl sm:text-3xl tracking-[0.35em] uppercase text-luga-ink dark:text-luga-darkInk font-bold transition-all duration-300 group-hover:tracking-[0.42em]">
+                  <span className="font-editorial text-xl sm:text-3xl tracking-[0.28em] sm:tracking-[0.35em] uppercase text-luga-ink dark:text-luga-darkInk font-bold transition-all duration-300 group-hover:tracking-[0.42em]">
                     LUGA
                   </span>
-                  <span className="font-mono text-[8px] sm:text-[9px] tracking-mega uppercase text-luga-muted dark:text-luga-darkMuted -mt-1 opacity-80">
+                  <span className="font-mono text-[7px] sm:text-[9px] tracking-mega uppercase text-luga-muted dark:text-luga-darkMuted -mt-1 opacity-80">
                     KATHMANDU • 2026
                   </span>
                 </div>
@@ -194,10 +194,10 @@ export const Header: React.FC = () => {
             onClick={() => setMenuDrawerOpen(false)}
           />
 
-          <div className="fixed inset-y-0 left-0 max-w-full flex pr-10">
-            <div className="w-screen max-w-md bg-luga-bg dark:bg-luga-darkBg border-r border-luga-border dark:border-luga-darkBorder flex flex-col justify-between shadow-2xl transition-transform duration-300">
+          <div className="fixed inset-y-0 left-0 max-w-full flex pr-4 sm:pr-10">
+            <div className="w-screen max-w-sm sm:max-w-md bg-luga-bg dark:bg-luga-darkBg border-r border-luga-border dark:border-luga-darkBorder flex flex-col justify-between shadow-2xl transition-transform duration-300">
               {/* Drawer Header */}
-              <div className="p-6 border-b border-luga-border dark:border-luga-darkBorder flex items-center justify-between">
+              <div className="p-4 sm:p-6 border-b border-luga-border dark:border-luga-darkBorder flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Compass className="w-4 h-4 text-luga-crimson dark:text-luga-gold animate-spin" style={{ animationDuration: "14s" }} />
                   <span className="font-mono text-xs uppercase tracking-mega text-luga-ink dark:text-luga-darkInk">

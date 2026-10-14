@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ThemeToggle } from "@/components/common/ThemeToggle";
+import { LuxuryLoader } from "@/components/common/LuxuryLoader";
 import { useStore } from "@/lib/store-context";
 import {
   LayoutDashboard,
@@ -23,6 +24,7 @@ import {
   ShieldCheck,
   ArrowRight,
   User,
+  RotateCw,
 } from "lucide-react";
 
 export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({
@@ -30,7 +32,16 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const pathname = usePathname();
   const router = useRouter();
-  const { orders, adminUser, isAdminAuthenticated, adminLogout, isLoaded } = useStore();
+  const {
+    orders,
+    adminUser,
+    isAdminAuthenticated,
+    adminLogout,
+    isLoaded,
+    isSyncing,
+    supabaseStatus,
+    refreshFromDatabase,
+  } = useStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // If unauthenticated and on an admin page other than /admin/login, redirect
@@ -90,12 +101,11 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({
   // 1. Initial hydration loading state
   if (!isLoaded) {
     return (
-      <div className="min-h-screen bg-luga-bg dark:bg-[#070707] flex flex-col items-center justify-center font-mono text-xs uppercase tracking-ultra text-luga-muted">
-        <div className="flex items-center gap-3">
-          <span className="w-2.5 h-2.5 bg-luga-crimson dark:bg-luga-gold animate-ping" />
-          <span>VERIFYING LUGA ATELIER CREDENTIALS...</span>
-        </div>
-      </div>
+      <LuxuryLoader
+        fullScreen
+        label="VERIFYING ATELIER CREDENTIALS..."
+        sublabel="KATHMANDU ATELIER // RESTRICTED CONSOLE"
+      />
     );
   }
 
@@ -282,7 +292,7 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({
       {/* Main Admin Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top Navbar */}
-        <header className="h-16 sm:h-20 bg-luga-bg/95 dark:bg-[#0A0A0A]/95 backdrop-blur-md border-b border-luga-border dark:border-luga-darkBorder px-6 sm:px-10 flex items-center justify-between sticky top-0 z-30">
+        <header className="h-14 sm:h-20 bg-luga-bg/95 dark:bg-[#0A0A0A]/95 backdrop-blur-md border-b border-luga-border dark:border-luga-darkBorder px-4 sm:px-10 flex items-center justify-between sticky top-0 z-30">
           <div className="flex items-center gap-4">
             <button
               onClick={() => setSidebarOpen(true)}
@@ -309,17 +319,44 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({
               </button>
             </div>
 
-            <div className="hidden sm:flex items-center gap-1 font-mono text-[10px] tracking-wider uppercase px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span>LIVE CLOUD DB SYNC</span>
-            </div>
+            {/* Live Supabase Connection & Sync Controller */}
+            <button
+              onClick={() => refreshFromDatabase()}
+              disabled={isSyncing}
+              title="Click to pull latest state directly from Supabase PostgreSQL"
+              className={`hidden sm:flex items-center gap-1.5 font-mono text-[10px] tracking-wider uppercase px-2.5 py-1 border transition-colors cursor-pointer ${
+                isSyncing
+                  ? "bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400"
+                  : supabaseStatus === "connected"
+                  ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20"
+                  : "bg-red-500/10 border-red-500/30 text-red-600 dark:text-red-400 hover:bg-red-500/20"
+              }`}
+            >
+              <span
+                className={`w-1.5 h-1.5 rounded-full ${
+                  isSyncing
+                    ? "bg-amber-500 animate-spin"
+                    : supabaseStatus === "connected"
+                    ? "bg-emerald-500 animate-pulse"
+                    : "bg-red-500"
+                }`}
+              />
+              <span>
+                {isSyncing
+                  ? "SYNCING SUPABASE..."
+                  : supabaseStatus === "connected"
+                  ? "SUPABASE LIVE"
+                  : "RECONNECT SUPABASE"}
+              </span>
+              <RotateCw className={`w-3 h-3 ml-0.5 ${isSyncing ? "animate-spin" : ""}`} />
+            </button>
 
             <ThemeToggle />
           </div>
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 p-6 sm:p-10 max-w-[1920px] w-full mx-auto">
+        <main className="flex-1 p-4 sm:p-8 lg:p-10 max-w-[1920px] w-full mx-auto">
           {children}
         </main>
       </div>

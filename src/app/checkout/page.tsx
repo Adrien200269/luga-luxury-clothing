@@ -16,6 +16,7 @@ import {
   CheckCircle2,
   ArrowRight,
   ShoppingBag,
+  Compass,
 } from "lucide-react";
 
 export default function CheckoutPage() {
@@ -50,7 +51,7 @@ export default function CheckoutPage() {
 
   const totalNpr = cartSubtotal + shippingNpr;
 
-  const handleSubmitOrder = (e: React.FormEvent) => {
+  const handleSubmitOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!customerName || !phone || !toleAddress) {
       alert("Please fill in your name, Nepal contact number, and address.");
@@ -59,7 +60,8 @@ export default function CheckoutPage() {
 
     setIsSubmitting(true);
 
-    const order = createOrder({
+    try {
+      const order = await createOrder({
       customerName,
       phone,
       email: email || "customer@luga.studio",
@@ -87,7 +89,11 @@ export default function CheckoutPage() {
 
     clearCart();
     setPlacedOrder(order);
-    setIsSubmitting(false);
+    } catch (err) {
+      console.error("Checkout order submission error:", err);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Order Confirmed State
@@ -96,7 +102,7 @@ export default function CheckoutPage() {
 
     return (
       <StorefrontLayout>
-        <div className="max-w-3xl mx-auto px-6 py-20 text-center space-y-8">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12 sm:py-20 text-center space-y-6 sm:space-y-8">
           <div className="w-16 h-16 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center justify-center mx-auto rounded-none">
             <CheckCircle2 className="w-8 h-8" />
           </div>
@@ -105,7 +111,7 @@ export default function CheckoutPage() {
             <span className="font-mono text-[10px] tracking-mega uppercase text-luga-crimson dark:text-luga-gold">
               ORDER CONFIRMED // PATAN ATELIER DISPATCH
             </span>
-            <h1 className="font-editorial text-4xl sm:text-5xl text-luga-ink dark:text-luga-darkInk">
+            <h1 className="font-editorial text-3xl sm:text-5xl text-luga-ink dark:text-luga-darkInk break-words">
               Thank You, {placedOrder.customerName}
             </h1>
             <p className="font-mono text-xs text-luga-muted dark:text-luga-darkMuted uppercase tracking-wider">
@@ -171,16 +177,16 @@ export default function CheckoutPage() {
             </div>
           </div>
 
-          <div className="pt-6 flex flex-wrap justify-center gap-4 font-mono text-xs">
+          <div className="pt-6 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 font-mono text-xs w-full">
             <Link
               href="/shop"
-              className="px-8 py-3.5 bg-luga-ink text-white dark:bg-luga-darkInk dark:text-black uppercase tracking-ultra"
+              className="w-full sm:w-auto text-center px-8 py-3.5 bg-luga-ink text-white dark:bg-luga-darkInk dark:text-black uppercase tracking-ultra"
             >
               CONTINUE BROWSING
             </Link>
             <Link
               href="/admin/orders"
-              className="px-8 py-3.5 border border-luga-border dark:border-luga-darkBorder text-luga-ink dark:text-luga-darkInk uppercase tracking-ultra hover:border-luga-crimson dark:hover:border-luga-gold"
+              className="w-full sm:w-auto text-center px-8 py-3.5 border border-luga-border dark:border-luga-darkBorder text-luga-ink dark:text-luga-darkInk uppercase tracking-ultra hover:border-luga-crimson dark:hover:border-luga-gold"
             >
               VIEW IN ADMIN CMS →
             </Link>
@@ -215,19 +221,19 @@ export default function CheckoutPage() {
 
   return (
     <StorefrontLayout>
-      <div className="max-w-[1920px] mx-auto px-4 sm:px-8 py-10 sm:py-16">
-        <div className="border-b border-luga-border dark:border-luga-darkBorder pb-6 mb-10">
+      <div className="max-w-[1920px] mx-auto px-4 sm:px-8 py-8 sm:py-16">
+        <div className="border-b border-luga-border dark:border-luga-darkBorder pb-6 mb-8 sm:mb-10">
           <span className="font-mono text-[10px] tracking-mega uppercase text-luga-crimson dark:text-luga-gold">
             SECURE CLIENT CHECKOUT
           </span>
-          <h1 className="font-editorial text-3xl sm:text-5xl uppercase tracking-tight text-luga-ink dark:text-luga-darkInk mt-1">
+          <h1 className="font-editorial text-3xl sm:text-5xl uppercase tracking-tight text-luga-ink dark:text-luga-darkInk mt-1 break-words">
             NEPAL DISPATCH & ORDER
           </h1>
         </div>
 
-        <form onSubmit={handleSubmitOrder} className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+        <form onSubmit={handleSubmitOrder} className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
           {/* LEFT: Checkout Form Details */}
-          <div className="lg:col-span-7 space-y-10 font-mono text-xs">
+          <div className="lg:col-span-7 space-y-8 sm:space-y-10 font-mono text-xs">
             {/* 1. Contact Information */}
             <div className="space-y-4">
               <h3 className="text-xs uppercase tracking-mega font-bold text-luga-ink dark:text-luga-darkInk border-b border-luga-border dark:border-luga-darkBorder pb-2">
@@ -450,7 +456,7 @@ export default function CheckoutPage() {
 
           {/* RIGHT: Order Summary Rail */}
           <div className="lg:col-span-5 font-mono text-xs">
-            <div className="border border-luga-border dark:border-luga-darkBorder bg-luga-surface/40 dark:bg-luga-darkSurface/40 p-6 sm:p-8 space-y-6 sticky top-28">
+            <div className="border border-luga-border dark:border-luga-darkBorder bg-luga-surface/40 dark:bg-luga-darkSurface/40 p-4 sm:p-8 space-y-5 sm:space-y-6 lg:sticky lg:top-28">
               <h3 className="text-xs uppercase tracking-mega font-bold text-luga-ink dark:text-luga-darkInk border-b border-luga-border dark:border-luga-darkBorder pb-3">
                 ORDER ARCHIVE SUMMARY ({cart.reduce((a, b) => a + b.quantity, 0)})
               </h3>
@@ -508,10 +514,19 @@ export default function CheckoutPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-4 bg-luga-ink text-white dark:bg-luga-darkInk dark:text-black font-mono text-xs uppercase tracking-ultra hover:bg-luga-crimson dark:hover:bg-luga-gold transition-colors flex items-center justify-center gap-2"
+                className="w-full py-4 bg-luga-ink text-white dark:bg-luga-darkInk dark:text-black font-mono text-xs uppercase tracking-ultra hover:bg-luga-crimson dark:hover:bg-luga-gold transition-colors flex items-center justify-center gap-2.5 disabled:opacity-90 disabled:cursor-wait relative overflow-hidden"
               >
-                <span>{isSubmitting ? "PROCESSING ARCHIVE..." : "PLACE ORDER NOW"}</span>
-                <ArrowRight className="w-4 h-4" />
+                {isSubmitting ? (
+                  <>
+                    <Compass className="w-4 h-4 animate-spin-slow text-luga-crimson dark:text-luga-gold stroke-[1.5]" />
+                    <span>TRANSMITTING ORDER TO ATELIER...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>PLACE ORDER NOW</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
               </button>
 
               <div className="space-y-1 text-[10px] text-luga-muted text-center leading-relaxed">

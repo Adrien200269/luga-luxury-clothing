@@ -1,6 +1,19 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/services/db";
 
+function sanitizeCollectionData(data: Record<string, any>) {
+  const sanitized: Record<string, any> = {};
+
+  if (data.title !== undefined) sanitized.title = String(data.title).trim();
+  if (data.slug !== undefined) sanitized.slug = String(data.slug).trim();
+  if (data.volumeNumber !== undefined) sanitized.volumeNumber = String(data.volumeNumber).trim();
+  if (data.description !== undefined) sanitized.description = data.description ? String(data.description) : null;
+  if (data.coverImageUrl !== undefined) sanitized.coverImageUrl = data.coverImageUrl || null;
+  if (data.isActive !== undefined) sanitized.isActive = Boolean(data.isActive);
+
+  return sanitized;
+}
+
 export async function GET() {
   try {
     const collections = await prisma.collection.findMany({
@@ -19,10 +32,25 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { id, createdAt, updatedAt, ...colData } = body;
+    const sanitizedData = sanitizeCollectionData(body);
+
+    if (!sanitizedData.title) {
+      return NextResponse.json(
+        { success: false, error: "Title is required" },
+        { status: 400 }
+      );
+    }
+
+    if (!sanitizedData.slug) {
+      sanitizedData.slug = sanitizedData.title.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    }
+
+    if (!sanitizedData.volumeNumber) {
+      sanitizedData.volumeNumber = "VOLUME I";
+    }
 
     const collection = await prisma.collection.create({
-      data: colData,
+      data: sanitizedData as any,
     });
 
     return NextResponse.json({ success: true, data: collection }, { status: 201 });
@@ -38,7 +66,7 @@ export async function POST(req: Request) {
 export async function PUT(req: Request) {
   try {
     const body = await req.json();
-    const { id, createdAt, updatedAt, ...colData } = body;
+    const id = body.id;
 
     if (!id) {
       return NextResponse.json(
@@ -47,9 +75,11 @@ export async function PUT(req: Request) {
       );
     }
 
+    const sanitizedData = sanitizeCollectionData(body);
+
     const updated = await prisma.collection.update({
       where: { id },
-      data: colData,
+      data: sanitizedData,
     });
 
     return NextResponse.json({ success: true, data: updated });
@@ -73,6 +103,12 @@ export async function DELETE(req: Request) {
         { status: 400 }
       );
     }
+
+    // Unlink products assigned to this collection first to prevent foreign key errors
+    await prisma.product.updateMany({
+      where: { collectionId: id },
+      data: { collectionId: null },
+    });
 
     await prisma.collection.delete({
       where: { id },

@@ -49,19 +49,19 @@ export default function AdminDashboardPage() {
             </h1>
           </div>
 
-          <div className="flex items-center gap-3 font-mono text-xs">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 font-mono text-xs w-full sm:w-auto">
             <Link
               href="/admin/site-media"
-              className="px-4 py-2.5 bg-luga-crimson text-white dark:bg-luga-gold dark:text-black uppercase tracking-ultra flex items-center gap-2 hover:opacity-90 transition-opacity"
+              className="px-4 py-2.5 bg-luga-crimson text-white dark:bg-luga-gold dark:text-black uppercase tracking-ultra flex items-center justify-center gap-2 hover:opacity-90 transition-opacity text-center"
             >
-              <ImageIcon className="w-4 h-4" />
+              <ImageIcon className="w-4 h-4 shrink-0" />
               <span>SITE IMAGE MANAGER</span>
             </Link>
             <Link
               href="/admin/products"
-              className="px-4 py-2.5 bg-luga-ink text-white dark:bg-luga-darkInk dark:text-black uppercase tracking-ultra flex items-center gap-2 hover:opacity-90 transition-opacity"
+              className="px-4 py-2.5 bg-luga-ink text-white dark:bg-luga-darkInk dark:text-black uppercase tracking-ultra flex items-center justify-center gap-2 hover:opacity-90 transition-opacity text-center"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-4 h-4 shrink-0" />
               <span>NEW GARMENT</span>
             </Link>
           </div>

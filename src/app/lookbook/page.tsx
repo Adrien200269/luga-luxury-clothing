@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { StorefrontLayout } from "@/components/storefront/StorefrontLayout";
 import { ManagedImage } from "@/components/common/ManagedImage";
+import { ScrollReveal } from "@/components/common/ScrollReveal";
 import { useStore } from "@/lib/store-context";
 import { formatNpr } from "@/lib/utils";
 import { ShoppingBag, ArrowRight } from "lucide-react";
@@ -22,12 +23,12 @@ export default function LookbookPage() {
   return (
     <StorefrontLayout>
       {/* Editorial Header */}
-      <section className="border-b border-luga-border dark:border-luga-darkBorder py-16 sm:py-24 px-6 text-center bg-luga-surface/40 dark:bg-luga-darkSurface/40">
+      <section className="border-b border-luga-border dark:border-luga-darkBorder py-12 sm:py-24 px-4 sm:px-6 text-center bg-luga-surface/40 dark:bg-luga-darkSurface/40">
         <div className="max-w-4xl mx-auto space-y-3">
           <span className="font-mono text-[10px] sm:text-xs tracking-mega uppercase text-luga-crimson dark:text-luga-gold">
             EDITORIAL 35MM ARCHIVE
           </span>
-          <h1 className="font-editorial text-4xl sm:text-6xl uppercase tracking-tight text-luga-ink dark:text-luga-darkInk font-light">
+          <h1 className="font-editorial text-3xl sm:text-6xl uppercase tracking-tight text-luga-ink dark:text-luga-darkInk font-light break-words">
             LOOKBOOK ARCHIVE
           </h1>
           <p className="font-mono text-xs sm:text-sm text-luga-muted dark:text-luga-darkMuted max-w-xl mx-auto leading-relaxed">
@@ -66,27 +67,29 @@ export default function LookbookPage() {
               className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center pb-16 border-b border-luga-border/50 dark:border-luga-darkBorder/50 last:border-none"
             >
               {/* Big Frame Image Slot */}
-              <div className="lg:col-span-8 relative aspect-[16/10] bg-luga-surface dark:bg-luga-darkSurface border border-luga-border dark:border-luga-darkBorder overflow-hidden">
-                <ManagedImage
-                  src={item.imageUrl}
-                  slotName={`LOOKBOOK_VOL_1_FRAME_${index + 1}`}
-                  aspectRatio="16:10"
-                  resolution="2000×1250px Editorial"
-                  alt={item.title}
-                  className="w-full h-full border-none"
-                />
-                <div className="absolute top-4 left-4 font-mono text-[9px] tracking-mega uppercase px-3 py-1 bg-black/80 text-white backdrop-blur-sm border border-white/20">
-                  FRAME 0{index + 1} // 35MM
+              <ScrollReveal direction="up" duration={800} className="lg:col-span-8">
+                <div className="relative aspect-[16/10] bg-luga-surface dark:bg-luga-darkSurface border border-luga-border dark:border-luga-darkBorder overflow-hidden">
+                  <ManagedImage
+                    src={item.imageUrl}
+                    slotName={`LOOKBOOK_VOL_1_FRAME_${index + 1}`}
+                    aspectRatio="16:10"
+                    resolution="2000×1250px Editorial"
+                    alt={item.title}
+                    className="w-full h-full border-none"
+                  />
+                  <div className="absolute top-4 left-4 font-mono text-[9px] tracking-mega uppercase px-3 py-1 bg-black/80 text-white backdrop-blur-sm border border-white/20">
+                    FRAME 0{index + 1} // 35MM
+                  </div>
                 </div>
-              </div>
+              </ScrollReveal>
 
               {/* Shop the Look Details */}
-              <div className="lg:col-span-4 space-y-6">
+              <ScrollReveal direction="up" delay={150} duration={800} className="lg:col-span-4 space-y-6">
                 <div className="space-y-2">
                   <span className="font-mono text-[10px] tracking-mega uppercase text-luga-crimson dark:text-luga-gold">
                     {item.volume}
                   </span>
-                  <h2 className="font-editorial text-3xl sm:text-4xl text-luga-ink dark:text-luga-darkInk uppercase leading-tight">
+                  <h2 className="font-editorial text-2xl sm:text-4xl text-luga-ink dark:text-luga-darkInk uppercase leading-tight break-words">
                     {item.title}
                   </h2>
                   <p className="font-mono text-xs text-luga-muted dark:text-luga-darkMuted leading-relaxed">
@@ -158,7 +161,7 @@ export default function LookbookPage() {
                     <ArrowRight className="w-3.5 h-3.5" />
                   </Link>
                 </div>
-              </div>
+              </ScrollReveal>
             </div>
           );
         })}

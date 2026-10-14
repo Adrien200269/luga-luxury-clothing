@@ -5,7 +5,7 @@ import { AdminLayout } from "@/components/admin/AdminLayout";
 import { ManagedImage } from "@/components/common/ManagedImage";
 import { useStore } from "@/lib/store-context";
 import { Collection } from "@/types";
-import { Plus, Edit2, Trash2, X, Layers, Upload } from "lucide-react";
+import { Plus, Edit2, Trash2, X, Layers, Upload, Compass } from "lucide-react";
 import { compressImage } from "@/lib/image-utils";
 
 export default function AdminCollectionsPage() {
@@ -13,6 +13,7 @@ export default function AdminCollectionsPage() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCollection, setEditingCollection] = useState<Collection | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   const [title, setTitle] = useState("");
   const [slug, setSlug] = useState("");
@@ -40,32 +41,39 @@ export default function AdminCollectionsPage() {
     setIsModalOpen(true);
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title) return;
 
-    const finalSlug = slug.trim() || title.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    setIsSaving(true);
+    try {
+      const finalSlug = slug.trim() || title.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 
-    if (editingCollection) {
-      updateCollection(editingCollection.id, {
-        title,
-        slug: finalSlug,
-        volumeNumber,
-        description,
-        coverImageUrl,
-      });
-    } else {
-      addCollection({
-        title,
-        slug: finalSlug,
-        volumeNumber,
-        description,
-        coverImageUrl,
-        isActive: true,
-      });
+      if (editingCollection) {
+        await updateCollection(editingCollection.id, {
+          title,
+          slug: finalSlug,
+          volumeNumber,
+          description,
+          coverImageUrl,
+        });
+      } else {
+        await addCollection({
+          title,
+          slug: finalSlug,
+          volumeNumber,
+          description,
+          coverImageUrl,
+          isActive: true,
+        });
+      }
+
+      setIsModalOpen(false);
+    } catch (err) {
+      console.error("Save collection error:", err);
+    } finally {
+      setIsSaving(false);
     }
-
-    setIsModalOpen(false);
   };
 
   const handleFileUpload = async (file: File) => {
@@ -171,11 +179,11 @@ export default function AdminCollectionsPage() {
 
         {/* Create / Edit Modal */}
         {isModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
-            <div className="bg-luga-bg dark:bg-[#121212] border border-luga-border dark:border-luga-darkBorder max-w-xl w-full p-6 sm:p-8 shadow-2xl relative">
+          <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-sm overflow-y-auto">
+            <div className="bg-luga-bg dark:bg-[#121212] border border-luga-border dark:border-luga-darkBorder max-w-xl w-full max-h-[92vh] overflow-y-auto p-5 sm:p-8 shadow-2xl relative my-auto">
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="absolute top-5 right-5 text-luga-muted hover:text-luga-ink"
+                className="absolute top-4 right-4 text-luga-muted hover:text-luga-ink"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -259,19 +267,27 @@ export default function AdminCollectionsPage() {
                   </div>
                 </div>
 
-                <div className="flex justify-end gap-3 pt-4 border-t border-luga-border">
+                <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4 border-t border-luga-border">
                   <button
                     type="button"
                     onClick={() => setIsModalOpen(false)}
-                    className="px-5 py-2.5 border border-luga-border uppercase"
+                    className="w-full sm:w-auto px-5 py-2.5 border border-luga-border uppercase text-center"
                   >
                     CANCEL
                   </button>
                   <button
                     type="submit"
-                    className="px-6 py-2.5 bg-luga-ink text-white dark:bg-luga-darkInk dark:text-black uppercase tracking-ultra"
+                    disabled={isSaving}
+                    className="w-full sm:w-auto px-6 py-2.5 bg-luga-ink text-white dark:bg-luga-darkInk dark:text-black uppercase tracking-ultra text-center flex items-center justify-center gap-2 disabled:opacity-75 disabled:cursor-wait"
                   >
-                    SAVE VOLUME
+                    {isSaving ? (
+                      <>
+                        <Compass className="w-3.5 h-3.5 animate-spin-slow text-luga-crimson dark:text-luga-gold" />
+                        <span>SYNCING TO SUPABASE...</span>
+                      </>
+                    ) : (
+                      <span>SAVE VOLUME</span>
+                    )}
                   </button>
                 </div>
               </form>

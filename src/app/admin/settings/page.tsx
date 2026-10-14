@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { useStore } from "@/lib/store-context";
-import { Check, RotateCcw, Save, ShieldAlert } from "lucide-react";
+import { Check, RotateCcw, Save, ShieldAlert, Compass } from "lucide-react";
 
 export default function AdminSettingsPage() {
   const { settings, updateSettings, resetAllToDefault } = useStore();
@@ -19,22 +19,30 @@ export default function AdminSettingsPage() {
   const [studioAddress, setStudioAddress] = useState(settings.studioAddress);
 
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    updateSettings({
-      announcementText,
-      announcementActive,
-      shippingInsideRingRoadNpr,
-      shippingOutsideRingRoadNpr,
-      shippingOutsideValleyNpr,
-      freeShippingThresholdNpr,
-      whatsappNumber,
-      instagramHandle,
-      studioAddress,
-    });
-    setSavedSuccess(true);
-    setTimeout(() => setSavedSuccess(false), 2500);
+    setIsSaving(true);
+    try {
+      await updateSettings({
+        announcementText,
+        announcementActive,
+        shippingInsideRingRoadNpr,
+        shippingOutsideRingRoadNpr,
+        shippingOutsideValleyNpr,
+        freeShippingThresholdNpr,
+        whatsappNumber,
+        instagramHandle,
+        studioAddress,
+      });
+      setSavedSuccess(true);
+      setTimeout(() => setSavedSuccess(false), 2500);
+    } catch (err) {
+      console.error("Save settings error:", err);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -212,13 +220,23 @@ export default function AdminSettingsPage() {
           </div>
 
           {/* Submit Actions */}
-          <div className="flex items-center justify-between pt-4">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4 pt-4">
             <button
               type="submit"
-              className="px-8 py-3.5 bg-luga-ink text-white dark:bg-luga-darkInk dark:text-black uppercase tracking-ultra flex items-center gap-2 hover:bg-luga-crimson dark:hover:bg-luga-gold transition-colors font-bold"
+              disabled={isSaving}
+              className="w-full sm:w-auto px-8 py-3.5 bg-luga-ink text-white dark:bg-luga-darkInk dark:text-black uppercase tracking-ultra flex items-center justify-center gap-2 hover:bg-luga-crimson dark:hover:bg-luga-gold transition-colors font-bold text-center disabled:opacity-75 disabled:cursor-wait"
             >
-              <Save className="w-4 h-4" />
-              <span>{savedSuccess ? "SETTINGS SAVED ✓" : "SAVE SETTINGS"}</span>
+              {isSaving ? (
+                <>
+                  <Compass className="w-4 h-4 animate-spin-slow text-luga-crimson dark:text-luga-gold" />
+                  <span>SYNCING TO SUPABASE...</span>
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4" />
+                  <span>{savedSuccess ? "SETTINGS SAVED TO SUPABASE ✓" : "SAVE SETTINGS"}</span>
+                </>
+              )}
             </button>
 
             <button
@@ -230,7 +248,7 @@ export default function AdminSettingsPage() {
                   window.location.reload();
                 }
               }}
-              className="px-4 py-2 border border-dashed border-red-500/50 text-red-500 hover:bg-red-500/10 uppercase tracking-wider flex items-center gap-1.5 transition-colors"
+              className="w-full sm:w-auto px-4 py-2.5 border border-dashed border-red-500/50 text-red-500 hover:bg-red-500/10 uppercase tracking-wider flex items-center justify-center gap-1.5 transition-colors text-center"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span>RESTORE INITIAL DEFAULTS</span>

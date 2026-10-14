@@ -22,6 +22,8 @@ import {
   INITIAL_SITE_SETTINGS,
 } from "@/lib/initial-data";
 
+export type SupabaseStatus = "connected" | "syncing" | "error";
+
 interface StoreContextType {
   // Admin Authentication
   adminUser: AdminUser | null;
@@ -32,36 +34,36 @@ interface StoreContextType {
   // Site Media Slots
   mediaSlots: Record<string, SiteMediaSlot>;
   getMediaSlot: (slotKey: string) => SiteMediaSlot | undefined;
-  updateMediaSlot: (slotKey: string, updates: Partial<SiteMediaSlot>) => void;
-  resetMediaSlot: (slotKey: string) => void;
+  updateMediaSlot: (slotKey: string, updates: Partial<SiteMediaSlot>) => Promise<boolean>;
+  resetMediaSlot: (slotKey: string) => Promise<boolean>;
 
   // Products
   products: Product[];
-  addProduct: (product: Omit<Product, "id" | "createdAt">) => Product;
-  updateProduct: (id: string, updates: Partial<Product>) => void;
-  deleteProduct: (id: string) => void;
+  addProduct: (product: Omit<Product, "id" | "createdAt">) => Promise<Product | null>;
+  updateProduct: (id: string, updates: Partial<Product>) => Promise<boolean>;
+  deleteProduct: (id: string) => Promise<boolean>;
   getProductBySlug: (slug: string) => Product | undefined;
 
   // Collections
   collections: Collection[];
-  addCollection: (col: Omit<Collection, "id" | "createdAt">) => Collection;
-  updateCollection: (id: string, updates: Partial<Collection>) => void;
-  deleteCollection: (id: string) => void;
+  addCollection: (col: Omit<Collection, "id" | "createdAt">) => Promise<Collection | null>;
+  updateCollection: (id: string, updates: Partial<Collection>) => Promise<boolean>;
+  deleteCollection: (id: string) => Promise<boolean>;
 
   // Lookbook
   lookbookItems: LookbookItem[];
-  addLookbookItem: (item: Omit<LookbookItem, "id" | "createdAt">) => LookbookItem;
-  updateLookbookItem: (id: string, updates: Partial<LookbookItem>) => void;
-  deleteLookbookItem: (id: string) => void;
+  addLookbookItem: (item: Omit<LookbookItem, "id" | "createdAt">) => Promise<LookbookItem | null>;
+  updateLookbookItem: (id: string, updates: Partial<LookbookItem>) => Promise<boolean>;
+  deleteLookbookItem: (id: string) => Promise<boolean>;
 
   // Orders
   orders: Order[];
-  createOrder: (orderData: Omit<Order, "id" | "orderNumber" | "createdAt">) => Order;
-  updateOrderStatus: (orderId: string, status: OrderStatus, paymentStatus?: PaymentStatus) => void;
+  createOrder: (orderData: Omit<Order, "id" | "orderNumber" | "createdAt">) => Promise<Order>;
+  updateOrderStatus: (orderId: string, status: OrderStatus, paymentStatus?: PaymentStatus) => Promise<boolean>;
 
   // Settings
   settings: SiteSettings;
-  updateSettings: (updates: Partial<SiteSettings>) => void;
+  updateSettings: (updates: Partial<SiteSettings>) => Promise<boolean>;
 
   // Cart
   cart: CartItem[];
@@ -78,8 +80,11 @@ interface StoreContextType {
   isSearchOpen: boolean;
   setIsSearchOpen: (open: boolean) => void;
 
-  // Persistence status
+  // Supabase Live Sync & Status
   isLoaded: boolean;
+  isSyncing: boolean;
+  supabaseStatus: SupabaseStatus;
+  lastSyncTime: Date | null;
   resetAllToDefault: () => void;
   refreshFromDatabase: () => Promise<void>;
 }
@@ -100,6 +105,9 @@ const STORAGE_KEYS = {
 
 export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [supabaseStatus, setSupabaseStatus] = useState<SupabaseStatus>("connected");
+  const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
   const [adminUser, setAdminUser] = useState<AdminUser | null>(null);
 
   const [mediaSlots, setMediaSlots] = useState<Record<string, SiteMediaSlot>>(INITIAL_MEDIA_SLOTS);
@@ -125,6 +133,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // Fetch all latest data from backend Supabase PostgreSQL
   const refreshFromDatabase = useCallback(async () => {
+    setIsSyncing(true);
     try {
       const [slotsRes, prodsRes, colsRes, looksRes, setsRes, ordsRes] = await Promise.allSettled([
         fetch("/api/slots").then((r) => r.json()),
@@ -138,25 +147,43 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (slotsRes.status === "fulfilled" && slotsRes.value?.success && slotsRes.value?.data) {
         setMediaSlots((prev) => ({ ...prev, ...slotsRes.value.data }));
         try {
-          localStorage.setItem(STORAGE_KEYS.SLOTS, JSON.stringify({ ...INITIAL_MEDIA_SLOTS, ...slotsRes.value.data }));
+          localStorage.setItem(
+            STORAGE_KEYS.SLOTS,
+            JSON.stringify({ ...INITIAL_MEDIA_SLOTS, ...slotsRes.value.data })
+          );
         } catch {}
       }
 
-      if (prodsRes.status === "fulfilled" && prodsRes.value?.success && Array.isArray(prodsRes.value?.data) && prodsRes.value.data.length > 0) {
+      if (
+        prodsRes.status === "fulfilled" &&
+        prodsRes.value?.success &&
+        Array.isArray(prodsRes.value?.data) &&
+        prodsRes.value.data.length > 0
+      ) {
         setProducts(prodsRes.value.data);
         try {
           localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(prodsRes.value.data));
         } catch {}
       }
 
-      if (colsRes.status === "fulfilled" && colsRes.value?.success && Array.isArray(colsRes.value?.data) && colsRes.value.data.length > 0) {
+      if (
+        colsRes.status === "fulfilled" &&
+        colsRes.value?.success &&
+        Array.isArray(colsRes.value?.data) &&
+        colsRes.value.data.length > 0
+      ) {
         setCollections(colsRes.value.data);
         try {
           localStorage.setItem(STORAGE_KEYS.COLLECTIONS, JSON.stringify(colsRes.value.data));
         } catch {}
       }
 
-      if (looksRes.status === "fulfilled" && looksRes.value?.success && Array.isArray(looksRes.value?.data) && looksRes.value.data.length > 0) {
+      if (
+        looksRes.status === "fulfilled" &&
+        looksRes.value?.success &&
+        Array.isArray(looksRes.value?.data) &&
+        looksRes.value.data.length > 0
+      ) {
         setLookbookItems(looksRes.value.data);
         try {
           localStorage.setItem(STORAGE_KEYS.LOOKBOOK, JSON.stringify(looksRes.value.data));
@@ -166,18 +193,31 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (setsRes.status === "fulfilled" && setsRes.value?.success && setsRes.value?.data) {
         setSettings((prev) => ({ ...prev, ...setsRes.value.data }));
         try {
-          localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify({ ...INITIAL_SITE_SETTINGS, ...setsRes.value.data }));
+          localStorage.setItem(
+            STORAGE_KEYS.SETTINGS,
+            JSON.stringify({ ...INITIAL_SITE_SETTINGS, ...setsRes.value.data })
+          );
         } catch {}
       }
 
-      if (ordsRes.status === "fulfilled" && ordsRes.value?.success && Array.isArray(ordsRes.value?.data) && ordsRes.value.data.length > 0) {
+      if (
+        ordsRes.status === "fulfilled" &&
+        ordsRes.value?.success &&
+        Array.isArray(ordsRes.value?.data)
+      ) {
         setOrders(ordsRes.value.data);
         try {
           localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(ordsRes.value.data));
         } catch {}
       }
+
+      setSupabaseStatus("connected");
+      setLastSyncTime(new Date());
     } catch (err) {
       console.warn("Database sync notice (offline or connecting):", err);
+      setSupabaseStatus("error");
+    } finally {
+      setIsSyncing(false);
     }
   }, []);
 
@@ -213,7 +253,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setIsLoaded(true);
     }
 
-    // Then pull live database content
+    // Then pull live database content from Supabase
     refreshFromDatabase();
   }, [refreshFromDatabase]);
 
@@ -260,7 +300,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return mediaSlots[slotKey];
   };
 
-  const updateMediaSlot = (slotKey: string, updates: Partial<SiteMediaSlot>) => {
+  const updateMediaSlot = async (
+    slotKey: string,
+    updates: Partial<SiteMediaSlot>
+  ): Promise<boolean> => {
+    // Optimistic update
     setMediaSlots((prev) => {
       const existing = prev[slotKey] || {
         id: `slot-${slotKey.toLowerCase()}`,
@@ -288,19 +332,34 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     });
 
     notifyOtherTabs();
+    setIsSyncing(true);
 
-    // Persist to Supabase database via API
-    fetch("/api/slots", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ slotKey, ...updates }),
-    }).catch((err) => console.error("Database save slot error:", err));
+    try {
+      const res = await fetch("/api/slots", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slotKey, ...updates }),
+      });
+      const data = await res.json();
+      if (data.success && data.data) {
+        setMediaSlots((prev) => ({ ...prev, [slotKey]: data.data }));
+        setSupabaseStatus("connected");
+        return true;
+      }
+      return false;
+    } catch (err) {
+      console.error("Database save slot error:", err);
+      setSupabaseStatus("error");
+      return false;
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
-  const resetMediaSlot = (slotKey: string) => {
+  const resetMediaSlot = async (slotKey: string): Promise<boolean> => {
     const original = INITIAL_MEDIA_SLOTS[slotKey];
     if (original) {
-      updateMediaSlot(slotKey, {
+      return await updateMediaSlot(slotKey, {
         imageUrl: null,
         heading: original.heading,
         subHeading: original.subHeading,
@@ -309,44 +368,57 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         altText: original.altText,
       });
     }
+    return false;
   };
 
   // Product methods
-  const addProduct = (prodData: Omit<Product, "id" | "createdAt">): Product => {
-    const newProd: Product = {
-      ...prodData,
-      id: `prod-${Date.now()}`,
-      createdAt: new Date().toISOString(),
-    };
-
-    setProducts((prev) => {
-      const updated = [newProd, ...prev];
-      try {
-        localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(updated));
-      } catch {}
-      return updated;
-    });
-
-    notifyOtherTabs();
-
-    // Persist to backend database
-    fetch("/api/products", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newProd),
-    })
-      .then((r) => r.json())
-      .then((res) => {
-        if (res.success && res.data?.id) {
-          setProducts((prev) => prev.map((p) => (p.id === newProd.id ? res.data : p)));
-        }
-      })
-      .catch((err) => console.error("Database save product error:", err));
-
-    return newProd;
+  const addProduct = async (
+    prodData: Omit<Product, "id" | "createdAt">
+  ): Promise<Product | null> => {
+    setIsSyncing(true);
+    try {
+      const res = await fetch("/api/products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(prodData),
+      });
+      const result = await res.json();
+      if (result.success && result.data) {
+        const saved: Product = result.data;
+        setProducts((prev) => {
+          const updated = [saved, ...prev.filter((p) => p.id !== saved.id)];
+          try {
+            localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(updated));
+          } catch {}
+          return updated;
+        });
+        notifyOtherTabs();
+        setSupabaseStatus("connected");
+        return saved;
+      } else {
+        throw new Error(result.error || "Failed to create product in Supabase");
+      }
+    } catch (err) {
+      console.error("Database save product error:", err);
+      setSupabaseStatus("error");
+      // Fallback local creation
+      const fallbackProd: Product = {
+        ...prodData,
+        id: `prod-${Date.now()}`,
+        createdAt: new Date().toISOString(),
+      };
+      setProducts((prev) => [fallbackProd, ...prev]);
+      notifyOtherTabs();
+      return fallbackProd;
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
-  const updateProduct = (id: string, updates: Partial<Product>) => {
+  const updateProduct = async (
+    id: string,
+    updates: Partial<Product>
+  ): Promise<boolean> => {
     setProducts((prev) => {
       const updated = prev.map((p) => (p.id === id ? { ...p, ...updates } : p));
       try {
@@ -356,15 +428,31 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     });
 
     notifyOtherTabs();
+    setIsSyncing(true);
 
-    fetch("/api/products", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, ...updates }),
-    }).catch((err) => console.error("Database update product error:", err));
+    try {
+      const res = await fetch("/api/products", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, ...updates }),
+      });
+      const data = await res.json();
+      if (data.success && data.data) {
+        setProducts((prev) => prev.map((p) => (p.id === id ? data.data : p)));
+        setSupabaseStatus("connected");
+        return true;
+      }
+      return false;
+    } catch (err) {
+      console.error("Database update product error:", err);
+      setSupabaseStatus("error");
+      return false;
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
-  const deleteProduct = (id: string) => {
+  const deleteProduct = async (id: string): Promise<boolean> => {
     setProducts((prev) => {
       const updated = prev.filter((p) => p.id !== id);
       try {
@@ -374,10 +462,25 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     });
 
     notifyOtherTabs();
+    setIsSyncing(true);
 
-    fetch(`/api/products?id=${id}`, {
-      method: "DELETE",
-    }).catch((err) => console.error("Database delete product error:", err));
+    try {
+      const res = await fetch(`/api/products?id=${id}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSupabaseStatus("connected");
+        return true;
+      }
+      return false;
+    } catch (err) {
+      console.error("Database delete product error:", err);
+      setSupabaseStatus("error");
+      return false;
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   const getProductBySlug = (slug: string) => {
@@ -385,40 +488,51 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   // Collection methods
-  const addCollection = (colData: Omit<Collection, "id" | "createdAt">): Collection => {
-    const newCol: Collection = {
-      ...colData,
-      id: `col-${Date.now()}`,
-      createdAt: new Date().toISOString(),
-    };
-
-    setCollections((prev) => {
-      const updated = [...prev, newCol];
-      try {
-        localStorage.setItem(STORAGE_KEYS.COLLECTIONS, JSON.stringify(updated));
-      } catch {}
-      return updated;
-    });
-
-    notifyOtherTabs();
-
-    fetch("/api/collections", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newCol),
-    })
-      .then((r) => r.json())
-      .then((res) => {
-        if (res.success && res.data?.id) {
-          setCollections((prev) => prev.map((c) => (c.id === newCol.id ? res.data : c)));
-        }
-      })
-      .catch((err) => console.error("Database save collection error:", err));
-
-    return newCol;
+  const addCollection = async (
+    colData: Omit<Collection, "id" | "createdAt">
+  ): Promise<Collection | null> => {
+    setIsSyncing(true);
+    try {
+      const res = await fetch("/api/collections", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(colData),
+      });
+      const result = await res.json();
+      if (result.success && result.data) {
+        const saved: Collection = result.data;
+        setCollections((prev) => {
+          const updated = [...prev.filter((c) => c.id !== saved.id), saved];
+          try {
+            localStorage.setItem(STORAGE_KEYS.COLLECTIONS, JSON.stringify(updated));
+          } catch {}
+          return updated;
+        });
+        notifyOtherTabs();
+        setSupabaseStatus("connected");
+        return saved;
+      }
+      throw new Error(result.error || "Failed to create collection");
+    } catch (err) {
+      console.error("Database save collection error:", err);
+      setSupabaseStatus("error");
+      const fallbackCol: Collection = {
+        ...colData,
+        id: `col-${Date.now()}`,
+        createdAt: new Date().toISOString(),
+      };
+      setCollections((prev) => [...prev, fallbackCol]);
+      notifyOtherTabs();
+      return fallbackCol;
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
-  const updateCollection = (id: string, updates: Partial<Collection>) => {
+  const updateCollection = async (
+    id: string,
+    updates: Partial<Collection>
+  ): Promise<boolean> => {
     setCollections((prev) => {
       const updated = prev.map((c) => (c.id === id ? { ...c, ...updates } : c));
       try {
@@ -428,15 +542,31 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     });
 
     notifyOtherTabs();
+    setIsSyncing(true);
 
-    fetch("/api/collections", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, ...updates }),
-    }).catch((err) => console.error("Database update collection error:", err));
+    try {
+      const res = await fetch("/api/collections", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, ...updates }),
+      });
+      const data = await res.json();
+      if (data.success && data.data) {
+        setCollections((prev) => prev.map((c) => (c.id === id ? data.data : c)));
+        setSupabaseStatus("connected");
+        return true;
+      }
+      return false;
+    } catch (err) {
+      console.error("Database update collection error:", err);
+      setSupabaseStatus("error");
+      return false;
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
-  const deleteCollection = (id: string) => {
+  const deleteCollection = async (id: string): Promise<boolean> => {
     setCollections((prev) => {
       const updated = prev.filter((c) => c.id !== id);
       try {
@@ -446,49 +576,73 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     });
 
     notifyOtherTabs();
+    setIsSyncing(true);
 
-    fetch(`/api/collections?id=${id}`, {
-      method: "DELETE",
-    }).catch((err) => console.error("Database delete collection error:", err));
+    try {
+      const res = await fetch(`/api/collections?id=${id}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSupabaseStatus("connected");
+        return true;
+      }
+      return false;
+    } catch (err) {
+      console.error("Database delete collection error:", err);
+      setSupabaseStatus("error");
+      return false;
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   // Lookbook methods
-  const addLookbookItem = (
+  const addLookbookItem = async (
     itemData: Omit<LookbookItem, "id" | "createdAt">
-  ): LookbookItem => {
-    const newItem: LookbookItem = {
-      ...itemData,
-      id: `look-${Date.now()}`,
-      createdAt: new Date().toISOString(),
-    };
-
-    setLookbookItems((prev) => {
-      const updated = [...prev, newItem];
-      try {
-        localStorage.setItem(STORAGE_KEYS.LOOKBOOK, JSON.stringify(updated));
-      } catch {}
-      return updated;
-    });
-
-    notifyOtherTabs();
-
-    fetch("/api/lookbook", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newItem),
-    })
-      .then((r) => r.json())
-      .then((res) => {
-        if (res.success && res.data?.id) {
-          setLookbookItems((prev) => prev.map((item) => (item.id === newItem.id ? res.data : item)));
-        }
-      })
-      .catch((err) => console.error("Database save lookbook error:", err));
-
-    return newItem;
+  ): Promise<LookbookItem | null> => {
+    setIsSyncing(true);
+    try {
+      const res = await fetch("/api/lookbook", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(itemData),
+      });
+      const result = await res.json();
+      if (result.success && result.data) {
+        const saved: LookbookItem = result.data;
+        setLookbookItems((prev) => {
+          const updated = [...prev.filter((item) => item.id !== saved.id), saved];
+          try {
+            localStorage.setItem(STORAGE_KEYS.LOOKBOOK, JSON.stringify(updated));
+          } catch {}
+          return updated;
+        });
+        notifyOtherTabs();
+        setSupabaseStatus("connected");
+        return saved;
+      }
+      throw new Error(result.error || "Failed to create lookbook item");
+    } catch (err) {
+      console.error("Database save lookbook error:", err);
+      setSupabaseStatus("error");
+      const fallbackItem: LookbookItem = {
+        ...itemData,
+        id: `look-${Date.now()}`,
+        createdAt: new Date().toISOString(),
+      };
+      setLookbookItems((prev) => [...prev, fallbackItem]);
+      notifyOtherTabs();
+      return fallbackItem;
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
-  const updateLookbookItem = (id: string, updates: Partial<LookbookItem>) => {
+  const updateLookbookItem = async (
+    id: string,
+    updates: Partial<LookbookItem>
+  ): Promise<boolean> => {
     setLookbookItems((prev) => {
       const updated = prev.map((item) => (item.id === id ? { ...item, ...updates } : item));
       try {
@@ -498,15 +652,31 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     });
 
     notifyOtherTabs();
+    setIsSyncing(true);
 
-    fetch("/api/lookbook", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, ...updates }),
-    }).catch((err) => console.error("Database update lookbook error:", err));
+    try {
+      const res = await fetch("/api/lookbook", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, ...updates }),
+      });
+      const data = await res.json();
+      if (data.success && data.data) {
+        setLookbookItems((prev) => prev.map((item) => (item.id === id ? data.data : item)));
+        setSupabaseStatus("connected");
+        return true;
+      }
+      return false;
+    } catch (err) {
+      console.error("Database update lookbook error:", err);
+      setSupabaseStatus("error");
+      return false;
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
-  const deleteLookbookItem = (id: string) => {
+  const deleteLookbookItem = async (id: string): Promise<boolean> => {
     setLookbookItems((prev) => {
       const updated = prev.filter((item) => item.id !== id);
       try {
@@ -516,48 +686,72 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     });
 
     notifyOtherTabs();
+    setIsSyncing(true);
 
-    fetch(`/api/lookbook?id=${id}`, {
-      method: "DELETE",
-    }).catch((err) => console.error("Database delete lookbook error:", err));
+    try {
+      const res = await fetch(`/api/lookbook?id=${id}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSupabaseStatus("connected");
+        return true;
+      }
+      return false;
+    } catch (err) {
+      console.error("Database delete lookbook error:", err);
+      setSupabaseStatus("error");
+      return false;
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   // Order methods
-  const createOrder = (
+  const createOrder = async (
     orderData: Omit<Order, "id" | "orderNumber" | "createdAt">
-  ): Order => {
-    const randomSuffix = Math.floor(1000 + Math.random() * 9000);
-    const newOrder: Order = {
-      ...orderData,
-      id: `ord-${Date.now()}`,
-      orderNumber: `LUG-2026-${randomSuffix}`,
-      createdAt: new Date().toISOString(),
-    };
-
-    setOrders((prev) => {
-      const updated = [newOrder, ...prev];
-      try {
-        localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(updated));
-      } catch {}
-      return updated;
-    });
-
-    notifyOtherTabs();
-
-    fetch("/api/orders", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newOrder),
-    }).catch((err) => console.error("Database create order error:", err));
-
-    return newOrder;
+  ): Promise<Order> => {
+    setIsSyncing(true);
+    try {
+      const res = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(orderData),
+      });
+      const data = await res.json();
+      if (data.success && data.data) {
+        const confirmedOrder: Order = data.data;
+        setOrders((prev) => [confirmedOrder, ...prev.filter((o) => o.id !== confirmedOrder.id)]);
+        try {
+          localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify([confirmedOrder, ...orders]));
+        } catch {}
+        notifyOtherTabs();
+        setSupabaseStatus("connected");
+        return confirmedOrder;
+      }
+      throw new Error(data.error || "Order creation failed");
+    } catch (err) {
+      console.error("Database create order error:", err);
+      const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+      const fallbackOrder: Order = {
+        ...orderData,
+        id: `ord-${Date.now()}`,
+        orderNumber: `LUG-2026-${randomSuffix}`,
+        createdAt: new Date().toISOString(),
+      };
+      setOrders((prev) => [fallbackOrder, ...prev]);
+      notifyOtherTabs();
+      return fallbackOrder;
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
-  const updateOrderStatus = (
+  const updateOrderStatus = async (
     orderId: string,
     status: OrderStatus,
     paymentStatus?: PaymentStatus
-  ) => {
+  ): Promise<boolean> => {
     setOrders((prev) => {
       const updated = prev.map((o) =>
         o.id === orderId
@@ -575,16 +769,32 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     });
 
     notifyOtherTabs();
+    setIsSyncing(true);
 
-    fetch("/api/orders", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: orderId, orderStatus: status, paymentStatus }),
-    }).catch((err) => console.error("Database update order status error:", err));
+    try {
+      const res = await fetch("/api/orders", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: orderId, orderStatus: status, paymentStatus }),
+      });
+      const data = await res.json();
+      if (data.success && data.data) {
+        setOrders((prev) => prev.map((o) => (o.id === orderId ? data.data : o)));
+        setSupabaseStatus("connected");
+        return true;
+      }
+      return false;
+    } catch (err) {
+      console.error("Database update order status error:", err);
+      setSupabaseStatus("error");
+      return false;
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   // Settings methods
-  const updateSettings = (updates: Partial<SiteSettings>) => {
+  const updateSettings = async (updates: Partial<SiteSettings>): Promise<boolean> => {
     setSettings((prev) => {
       const updated = { ...prev, ...updates };
       try {
@@ -594,15 +804,31 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     });
 
     notifyOtherTabs();
+    setIsSyncing(true);
 
-    fetch("/api/settings", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(updates),
-    }).catch((err) => console.error("Database update settings error:", err));
+    try {
+      const res = await fetch("/api/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updates),
+      });
+      const data = await res.json();
+      if (data.success && data.data) {
+        setSettings(data.data);
+        setSupabaseStatus("connected");
+        return true;
+      }
+      return false;
+    } catch (err) {
+      console.error("Database update settings error:", err);
+      setSupabaseStatus("error");
+      return false;
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
-  // Cart methods
+  // Cart operations
   const addToCart = (item: CartItem) => {
     setCart((prev) => {
       const existingIdx = prev.findIndex(
@@ -663,31 +889,52 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const adminLogin = async (email: string, pass: string) => {
-    const trimmedEmail = email.trim().toLowerCase();
-    const trimmedPass = pass.trim();
-
-    if (
-      (trimmedEmail === "admin@luga.studio" ||
-        trimmedEmail === "adrien@luga.studio" ||
-        trimmedEmail === "admin") &&
-      (trimmedPass === "luga2026" || trimmedPass === "luga" || trimmedPass === "admin")
-    ) {
-      const user: AdminUser = {
-        id: "usr-admin-kathmandu",
-        email: trimmedEmail.includes("@") ? trimmedEmail : "admin@luga.studio",
-        name: "Sabja Shrestha // Atelier Director",
-        role: "ADMIN",
-        lastLogin: new Date().toISOString(),
+    setIsSyncing(true);
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password: pass }),
+      });
+      const data = await res.json();
+      if (data.success && data.user) {
+        setAdminUser(data.user);
+        try {
+          localStorage.setItem(STORAGE_KEYS.ADMIN_SESSION, JSON.stringify(data.user));
+        } catch {}
+        setSupabaseStatus("connected");
+        return { success: true };
+      }
+      return { success: false, error: data.error || "Invalid atelier credentials." };
+    } catch (err) {
+      console.error("Supabase adminLogin network notice:", err);
+      // Local fallback
+      const trimmedEmail = email.trim().toLowerCase();
+      const trimmedPass = pass.trim();
+      if (
+        (trimmedEmail === "admin@luga.studio" ||
+          trimmedEmail === "adrien@luga.studio" ||
+          trimmedEmail === "admin") &&
+        (trimmedPass === "luga2026" || trimmedPass === "luga" || trimmedPass === "admin")
+      ) {
+        const user: AdminUser = {
+          id: "usr-admin-kathmandu",
+          email: trimmedEmail.includes("@") ? trimmedEmail : "admin@luga.studio",
+          name: "Sabja Shrestha // Atelier Director",
+          role: "ADMIN",
+          lastLogin: new Date().toISOString(),
+        };
+        setAdminUser(user);
+        localStorage.setItem(STORAGE_KEYS.ADMIN_SESSION, JSON.stringify(user));
+        return { success: true };
+      }
+      return {
+        success: false,
+        error: "Invalid atelier credentials. Access denied.",
       };
-      setAdminUser(user);
-      localStorage.setItem(STORAGE_KEYS.ADMIN_SESSION, JSON.stringify(user));
-      return { success: true };
+    } finally {
+      setIsSyncing(false);
     }
-
-    return {
-      success: false,
-      error: "Invalid atelier credentials. Access denied.",
-    };
   };
 
   const adminLogout = () => {
@@ -738,6 +985,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         isSearchOpen,
         setIsSearchOpen,
         isLoaded,
+        isSyncing,
+        supabaseStatus,
+        lastSyncTime,
         resetAllToDefault,
         refreshFromDatabase,
       }}

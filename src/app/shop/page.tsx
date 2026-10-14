@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { StorefrontLayout } from "@/components/storefront/StorefrontLayout";
 import { ProductCard } from "@/components/storefront/ProductCard";
 import { ManagedImage } from "@/components/common/ManagedImage";
+import { ScrollReveal } from "@/components/common/ScrollReveal";
 import { useStore } from "@/lib/store-context";
 import { ProductCategory, GarmentSize } from "@/types";
 import { formatNpr } from "@/lib/utils";
@@ -107,23 +108,26 @@ function ShopContent() {
       {/* Main Filter & Products Section */}
       <div className="max-w-[1920px] mx-auto px-4 sm:px-8 py-8 sm:py-12">
         {/* Controls Toolbar */}
-        <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-luga-border dark:border-luga-darkBorder font-mono text-xs">
-          {/* Mobile Filter Toggle */}
-          <button
-            onClick={() => setMobileFilterOpen(!mobileFilterOpen)}
-            className="lg:hidden flex items-center gap-2 px-3 py-2 border border-luga-border dark:border-luga-darkBorder uppercase"
-          >
-            <SlidersHorizontal className="w-3.5 h-3.5" />
-            <span>FILTERS {hasActiveFilters && "(ACTIVE)"}</span>
-          </button>
+        {/* Filter & Sort Action Toolbar */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-6 border-b border-luga-border dark:border-luga-darkBorder font-mono text-xs">
+          <div className="flex items-center justify-between gap-3 w-full sm:w-auto">
+            {/* Mobile Filter Toggle */}
+            <button
+              onClick={() => setMobileFilterOpen(true)}
+              className="lg:hidden flex items-center gap-2 px-3.5 py-2 border border-luga-border dark:border-luga-darkBorder uppercase hover:bg-luga-surface dark:hover:bg-luga-darkSurface transition-colors"
+            >
+              <SlidersHorizontal className="w-3.5 h-3.5" />
+              <span>FILTERS {hasActiveFilters && "• ACTIVE"}</span>
+            </button>
 
-          {/* Result Count */}
-          <div className="text-luga-muted dark:text-luga-darkMuted uppercase tracking-wider">
-            SHOWING <strong className="text-luga-ink dark:text-luga-darkInk">{filteredProducts.length}</strong> OF {products.length} GARMENTS
+            {/* Result Count */}
+            <div className="text-[11px] sm:text-xs text-luga-muted dark:text-luga-darkMuted uppercase tracking-wider">
+              SHOWING <strong className="text-luga-ink dark:text-luga-darkInk">{filteredProducts.length}</strong> OF {products.length}
+            </div>
           </div>
 
           {/* Right Toolbar: View Mode + Sort */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
             {/* View Mode (2-col editorial vs 4-col grid) */}
             <div className="hidden sm:flex items-center border border-luga-border dark:border-luga-darkBorder">
               <button
@@ -151,12 +155,12 @@ function ShopContent() {
             </div>
 
             {/* Sort Dropdown */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
               <span className="hidden sm:inline text-luga-muted dark:text-luga-darkMuted uppercase">SORT:</span>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="bg-transparent border border-luga-border dark:border-luga-darkBorder px-2.5 py-1.5 text-xs font-mono uppercase text-luga-ink dark:text-luga-darkInk focus:outline-none"
+                className="w-full sm:w-auto bg-transparent border border-luga-border dark:border-luga-darkBorder px-2.5 py-1.5 text-xs font-mono uppercase text-luga-ink dark:text-luga-darkInk focus:outline-none"
               >
                 <option value="featured" className="bg-luga-bg dark:bg-luga-darkBg">Featured / Curated</option>
                 <option value="newest" className="bg-luga-bg dark:bg-luga-darkBg">Newest Drops</option>
@@ -167,10 +171,34 @@ function ShopContent() {
           </div>
         </div>
 
+        {/* Mobile Filter Backdrop */}
+        {mobileFilterOpen && (
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
+            onClick={() => setMobileFilterOpen(false)}
+          />
+        )}
+
         {/* Content Layout: Left Sidebar Filters + Products Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 pt-8">
-          {/* Desktop Left Rail Filters */}
-          <aside className={`lg:col-span-3 space-y-8 font-mono text-xs ${mobileFilterOpen ? "block" : "hidden lg:block"}`}>
+          {/* Filters Rail (Off-canvas Drawer on Mobile, Sticky Column on Desktop) */}
+          <aside
+            className={`fixed inset-y-0 left-0 z-50 w-full max-w-xs bg-luga-bg dark:bg-luga-darkBg border-r border-luga-border dark:border-luga-darkBorder p-6 overflow-y-auto space-y-8 font-mono text-xs shadow-2xl transition-transform duration-300 lg:static lg:w-auto lg:p-0 lg:shadow-none lg:z-auto lg:translate-x-0 lg:border-none lg:col-span-3 ${
+              mobileFilterOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+            }`}
+          >
+            {/* Mobile Close Header */}
+            <div className="flex items-center justify-between lg:hidden border-b border-luga-border dark:border-luga-darkBorder pb-4">
+              <span className="font-bold text-xs uppercase tracking-mega text-luga-ink dark:text-luga-darkInk">
+                ARCHIVE FILTERS
+              </span>
+              <button
+                onClick={() => setMobileFilterOpen(false)}
+                className="p-1 text-luga-muted hover:text-luga-ink dark:hover:text-luga-darkInk"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
             {hasActiveFilters && (
               <button
                 onClick={resetFilters}
@@ -312,12 +340,18 @@ function ShopContent() {
                     : "grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
                 }`}
               >
-                {filteredProducts.map((product) => (
-                  <ProductCard
+                {filteredProducts.map((product, idx) => (
+                  <ScrollReveal
                     key={product.id}
-                    product={product}
-                    viewMode={viewMode}
-                  />
+                    direction="up"
+                    delay={(idx % (viewMode === "editorial" ? 2 : 4)) * 60}
+                    duration={650}
+                  >
+                    <ProductCard
+                      product={product}
+                      viewMode={viewMode}
+                    />
+                  </ScrollReveal>
                 ))}
               </div>
             )}

@@ -16,6 +16,8 @@ import {
   Check,
   Sparkles,
   Shirt,
+  Compass,
+  RotateCw,
 } from "lucide-react";
 import { compressImage } from "@/lib/image-utils";
 
@@ -26,6 +28,7 @@ export default function AdminProductsPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Form State
   const [title, setTitle] = useState("");
@@ -84,7 +87,7 @@ export default function AdminProductsPage() {
     setPriceNpr(product.priceNpr);
     setCompareAtPriceNpr(product.compareAtPriceNpr);
     setCategory(product.category);
-    setCollectionId(product.collectionId);
+    setCollectionId(product.collectionId || "");
     setPrimaryImageUrl(product.primaryImageUrl);
     setHoverImageUrl(product.hoverImageUrl);
     setGalleryUrls(product.galleryUrls || []);
@@ -100,65 +103,73 @@ export default function AdminProductsPage() {
     setIsModalOpen(true);
   };
 
-  const handleSaveProduct = (e: React.FormEvent) => {
+  const handleSaveProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title || !priceNpr) return;
 
-    const generatedSlug = slug.trim() || title.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-    const collection = collections.find((c) => c.id === collectionId);
+    setIsSaving(true);
+    try {
+      const generatedSlug = slug.trim() || title.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+      const collection = collections.find((c) => c.id === collectionId);
+      const cleanCollectionId = collectionId && collectionId.trim() !== "" ? collectionId : undefined;
 
-    const variants: ProductVariant[] = (["XS", "S", "M", "L", "XL", "XXL"] as GarmentSize[]).map((size) => ({
-      id: `var-${size.toLowerCase()}-${Date.now()}`,
-      productId: editingProduct?.id || "",
-      size,
-      stockQuantity: stockMatrix[size] || 0,
-      sku: `${sku}-${size}`,
-    }));
+      const variants: ProductVariant[] = (["XS", "S", "M", "L", "XL", "XXL"] as GarmentSize[]).map((size) => ({
+        id: `var-${size.toLowerCase()}-${Date.now()}`,
+        productId: editingProduct?.id || "",
+        size,
+        stockQuantity: stockMatrix[size] || 0,
+        sku: `${sku}-${size}`,
+      }));
 
-    if (editingProduct) {
-      updateProduct(editingProduct.id, {
-        title,
-        slug: generatedSlug,
-        sku,
-        description,
-        craftStory,
-        fabricGsm,
-        priceNpr,
-        compareAtPriceNpr,
-        category,
-        collectionId,
-        collectionTitle: collection?.title,
-        primaryImageUrl,
-        hoverImageUrl,
-        galleryUrls,
-        isFeatured,
-        isNewArrival,
-        variants,
-      });
-    } else {
-      addProduct({
-        title,
-        slug: generatedSlug,
-        sku,
-        description,
-        craftStory,
-        fabricGsm,
-        priceNpr,
-        compareAtPriceNpr,
-        category,
-        collectionId,
-        collectionTitle: collection?.title,
-        primaryImageUrl,
-        hoverImageUrl,
-        galleryUrls,
-        isFeatured,
-        isNewArrival,
-        isArchived: false,
-        variants,
-      });
+      if (editingProduct) {
+        await updateProduct(editingProduct.id, {
+          title,
+          slug: generatedSlug,
+          sku,
+          description,
+          craftStory,
+          fabricGsm,
+          priceNpr,
+          compareAtPriceNpr,
+          category,
+          collectionId: cleanCollectionId,
+          collectionTitle: collection?.title,
+          primaryImageUrl,
+          hoverImageUrl,
+          galleryUrls,
+          isFeatured,
+          isNewArrival,
+          variants,
+        });
+      } else {
+        await addProduct({
+          title,
+          slug: generatedSlug,
+          sku,
+          description,
+          craftStory,
+          fabricGsm,
+          priceNpr,
+          compareAtPriceNpr,
+          category,
+          collectionId: cleanCollectionId,
+          collectionTitle: collection?.title,
+          primaryImageUrl,
+          hoverImageUrl,
+          galleryUrls,
+          isFeatured,
+          isNewArrival,
+          isArchived: false,
+          variants,
+        });
+      }
+
+      setIsModalOpen(false);
+    } catch (err) {
+      console.error("Save product error:", err);
+    } finally {
+      setIsSaving(false);
     }
-
-    setIsModalOpen(false);
   };
 
   const handleFileToUrl = async (file: File, target: "primary" | "hover" | "gallery") => {
@@ -334,11 +345,11 @@ export default function AdminProductsPage() {
 
         {/* CREATE / EDIT MODAL */}
         {isModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm overflow-y-auto">
-            <div className="bg-luga-bg dark:bg-[#121212] border border-luga-border dark:border-luga-darkBorder max-w-4xl w-full p-6 sm:p-10 shadow-2xl relative my-8">
+          <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-3 sm:p-6 bg-black/75 backdrop-blur-sm overflow-y-auto">
+            <div className="bg-luga-bg dark:bg-[#121212] border border-luga-border dark:border-luga-darkBorder max-w-4xl w-full max-h-[92vh] overflow-y-auto p-5 sm:p-10 shadow-2xl relative my-auto">
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="absolute top-5 right-5 text-luga-muted hover:text-luga-ink dark:hover:text-luga-darkInk"
+                className="absolute top-4 right-4 text-luga-muted hover:text-luga-ink dark:hover:text-luga-darkInk"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -477,7 +488,7 @@ export default function AdminProductsPage() {
                   <label className="text-[10px] text-luga-muted uppercase tracking-wider block font-bold">
                     SIZE & INVENTORY MATRIX (AVAILABLE UNITS)
                   </label>
-                  <div className="grid grid-cols-6 gap-2">
+                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-3">
                     {(["XS", "S", "M", "L", "XL", "XXL"] as GarmentSize[]).map((size) => (
                       <div key={size} className="space-y-1 text-center">
                         <span className="text-[10px] font-bold text-luga-ink dark:text-luga-darkInk">{size}</span>
@@ -603,19 +614,27 @@ export default function AdminProductsPage() {
                 </div>
 
                 {/* Actions */}
-                <div className="flex justify-end gap-3 pt-6 border-t border-luga-border dark:border-luga-darkBorder">
+                <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-6 border-t border-luga-border dark:border-luga-darkBorder">
                   <button
                     type="button"
                     onClick={() => setIsModalOpen(false)}
-                    className="px-6 py-3 border border-luga-border uppercase tracking-ultra text-luga-muted hover:text-luga-ink"
+                    className="w-full sm:w-auto px-6 py-3 border border-luga-border uppercase tracking-ultra text-luga-muted hover:text-luga-ink text-center"
                   >
                     CANCEL
                   </button>
                   <button
                     type="submit"
-                    className="px-8 py-3 bg-luga-ink text-white dark:bg-luga-darkInk dark:text-black uppercase tracking-ultra hover:bg-luga-crimson dark:hover:bg-luga-gold transition-colors"
+                    disabled={isSaving}
+                    className="w-full sm:w-auto px-8 py-3 bg-luga-ink text-white dark:bg-luga-darkInk dark:text-black uppercase tracking-ultra hover:bg-luga-crimson dark:hover:bg-luga-gold transition-colors text-center flex items-center justify-center gap-2 disabled:opacity-75 disabled:cursor-wait"
                   >
-                    {editingProduct ? "SAVE CHANGES" : "PUBLISH GARMENT"}
+                    {isSaving ? (
+                      <>
+                        <Compass className="w-4 h-4 animate-spin-slow text-luga-crimson dark:text-luga-gold" />
+                        <span>SYNCING TO SUPABASE...</span>
+                      </>
+                    ) : (
+                      <span>{editingProduct ? "SAVE CHANGES" : "PUBLISH GARMENT"}</span>
+                    )}
                   </button>
                 </div>
               </form>

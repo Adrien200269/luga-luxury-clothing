@@ -5,6 +5,7 @@ import Link from "next/link";
 import { StorefrontLayout } from "@/components/storefront/StorefrontLayout";
 import { ManagedImage } from "@/components/common/ManagedImage";
 import { ProductCard } from "@/components/storefront/ProductCard";
+import { ScrollReveal } from "@/components/common/ScrollReveal";
 import { useStore } from "@/lib/store-context";
 import { formatNpr } from "@/lib/utils";
 import { ArrowRight, ArrowUpRight, Compass, Sparkles } from "lucide-react";
@@ -59,14 +60,14 @@ export default function HomePage() {
         </div>
 
         {/* Hero Architectural Metadata Overlay */}
-        <div className="relative z-10 w-full max-w-[1920px] mx-auto px-6 sm:px-12 py-12 lg:py-20 flex flex-col lg:flex-row lg:items-end justify-between gap-8 text-white">
-          <div className="max-w-3xl space-y-4">
-            <div className="flex items-center gap-2 font-mono text-[10px] sm:text-xs tracking-mega uppercase text-luga-gold">
+        <div className="relative z-10 w-full max-w-[1920px] mx-auto px-4 sm:px-8 lg:px-12 py-10 sm:py-16 lg:py-20 flex flex-col lg:flex-row lg:items-end justify-between gap-6 sm:gap-8 text-white">
+          <ScrollReveal direction="up" duration={850} className="max-w-3xl space-y-3 sm:space-y-4">
+            <div className="flex items-center gap-2 font-mono text-[9px] sm:text-xs tracking-mega uppercase text-luga-gold">
               <Compass className="w-3.5 h-3.5 animate-spin" style={{ animationDuration: "12s" }} />
-              <span>{heroMainSlot?.subHeading || "AUTUMN / WINTER 2026 // LIMITED ARTISANAL DROP"}</span>
+              <span className="truncate">{heroMainSlot?.subHeading || "AUTUMN / WINTER 2026 // LIMITED ARTISANAL DROP"}</span>
             </div>
 
-            <h1 className="font-editorial text-4xl sm:text-6xl lg:text-7xl xl:text-8xl font-light tracking-tight leading-[0.95] uppercase">
+            <h1 className="font-editorial text-3xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-light tracking-tight leading-[0.98] uppercase break-words">
               {heroMainSlot?.heading || "VOLUME I: KATHMANDU ARCHIVE"}
             </h1>
 
@@ -74,36 +75,36 @@ export default function HomePage() {
               Centuries of Newari handloom heritage re-engineered into heavy 460–580 GSM brutalist streetwear silhouettes. Made in Nepal.
             </p>
 
-            <div className="pt-4 flex flex-wrap items-center gap-4">
+            <div className="pt-3 sm:pt-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
               <Link
                 href={heroMainSlot?.ctaLink || "/collections/volume-1"}
-                className="px-8 py-4 bg-white text-black font-mono text-xs uppercase tracking-ultra hover:bg-luga-gold hover:text-black transition-colors duration-300 flex items-center gap-3"
+                className="w-full sm:w-auto px-6 sm:px-8 py-3.5 sm:py-4 bg-white text-black font-mono text-xs uppercase tracking-ultra hover:bg-luga-gold hover:text-black transition-colors duration-300 flex items-center justify-center gap-3 text-center"
               >
                 <span>{heroMainSlot?.ctaText || "EXPLORE THE ARCHIVE"}</span>
                 <ArrowRight className="w-4 h-4" />
               </Link>
               <Link
                 href="/lookbook"
-                className="px-8 py-4 bg-black/40 backdrop-blur-md border border-white/40 text-white font-mono text-xs uppercase tracking-ultra hover:bg-white hover:text-black transition-colors duration-300"
+                className="w-full sm:w-auto px-6 sm:px-8 py-3.5 sm:py-4 bg-black/40 backdrop-blur-md border border-white/40 text-white font-mono text-xs uppercase tracking-ultra hover:bg-white hover:text-black transition-colors duration-300 text-center"
               >
                 VIEW LOOKBOOK FILM
               </Link>
             </div>
-          </div>
+          </ScrollReveal>
 
           {/* Right Rail Info Stamp */}
-          <div className="hidden lg:flex flex-col items-end text-right font-mono text-[10px] tracking-mega space-y-1 text-white/70">
+          <ScrollReveal direction="up" delay={200} className="hidden lg:flex flex-col items-end text-right font-mono text-[10px] tracking-mega space-y-1 text-white/70">
             <div>EST. KATHMANDU VALLEY</div>
             <div>PATAN ATELIER // 27.6744° N</div>
             <div className="text-luga-gold pt-2">COMPLIMENTARY DELIVERY ACROSS RING ROAD</div>
-          </div>
+          </ScrollReveal>
         </div>
       </section>
 
       {/* 2. NEW ARRIVALS / FEATURED DROP GRID */}
       <section className="max-w-[1920px] mx-auto px-4 sm:px-8 py-16 sm:py-24">
         {/* Section Header */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between border-b border-luga-border dark:border-luga-darkBorder pb-4 mb-8 sm:mb-12 gap-4">
+        <ScrollReveal direction="up" className="flex flex-col sm:flex-row sm:items-end justify-between border-b border-luga-border dark:border-luga-darkBorder pb-4 mb-8 sm:mb-12 gap-4">
           <div>
             <span className="font-mono text-[10px] sm:text-xs tracking-mega uppercase text-luga-crimson dark:text-luga-gold flex items-center gap-2">
               <Sparkles className="w-3.5 h-3.5" />
@@ -121,12 +122,14 @@ export default function HomePage() {
             <span>VIEW ALL ({products.length})</span>
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </Link>
-        </div>
+        </ScrollReveal>
 
-        {/* 4-Column Desktop / 2-Column Mobile Grid */}
+        {/* 4-Column Desktop / 2-Column Mobile Grid with Staggered Scroll Reveal */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 sm:gap-x-8 gap-y-10 sm:gap-y-14">
-          {featuredProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
+          {featuredProducts.map((product, idx) => (
+            <ScrollReveal key={product.id} direction="up" delay={(idx % 4) * 80} duration={650}>
+              <ProductCard product={product} />
+            </ScrollReveal>
           ))}
         </div>
       </section>
@@ -135,84 +138,88 @@ export default function HomePage() {
       <section className="w-full border-y border-luga-border dark:border-luga-darkBorder">
         <div className="grid grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-luga-border dark:divide-luga-darkBorder">
           {/* Left Frame: Artisanal Handloom */}
-          <div className="group relative flex flex-col justify-end min-h-[580px] sm:min-h-[680px] p-8 sm:p-14 overflow-hidden bg-luga-surface dark:bg-luga-darkSurface">
-            <div className="absolute inset-0 w-full h-full">
-              <ManagedImage
-                slotKey="SPLIT_BANNER_LEFT"
-                aspectRatio="3:4"
-                resolution="1200×1600px"
-                alt="Artisanal Handloom Craftsmanship"
-                className="w-full h-full border-none"
-                imageClassName="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent pointer-events-none" />
-            </div>
+          <ScrollReveal direction="up" duration={750} className="h-full">
+            <div className="group relative flex flex-col justify-end min-h-[460px] sm:min-h-[580px] lg:min-h-[680px] p-6 sm:p-10 lg:p-14 overflow-hidden bg-luga-surface dark:bg-luga-darkSurface h-full">
+              <div className="absolute inset-0 w-full h-full">
+                <ManagedImage
+                  slotKey="SPLIT_BANNER_LEFT"
+                  aspectRatio="3:4"
+                  resolution="1200×1600px"
+                  alt="Artisanal Handloom Craftsmanship"
+                  className="w-full h-full border-none"
+                  imageClassName="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent pointer-events-none" />
+              </div>
 
-            <div className="relative z-10 space-y-3 text-white max-w-md">
-              <span className="font-mono text-[10px] tracking-mega uppercase text-luga-gold">
-                PATAN & BHAKTAPUR HERITAGE
-              </span>
-              <h3 className="font-editorial text-3xl sm:text-4xl uppercase tracking-tight">
-                {splitLeftSlot?.heading || "ARTISANAL HANDLOOM"}
-              </h3>
-              <p className="font-mono text-xs text-[#E0DDD8] tracking-wider leading-relaxed">
-                {splitLeftSlot?.subHeading ||
-                  "Spun on century-old wooden pit-looms in Lalitpur using organic unbleached Himalayan cotton and natural madder dyes."}
-              </p>
-              <div className="pt-2">
-                <Link
-                  href={splitLeftSlot?.ctaLink || "/about"}
-                  className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-ultra text-white border-b border-white pb-1 hover:text-luga-gold hover:border-luga-gold transition-colors"
-                >
-                  <span>{splitLeftSlot?.ctaText || "VIEW CRAFTSMANSHIP"}</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </Link>
+              <div className="relative z-10 space-y-3 text-white max-w-md">
+                <span className="font-mono text-[10px] tracking-mega uppercase text-luga-gold">
+                  PATAN & BHAKTAPUR HERITAGE
+                </span>
+                <h3 className="font-editorial text-3xl sm:text-4xl uppercase tracking-tight">
+                  {splitLeftSlot?.heading || "ARTISANAL HANDLOOM"}
+                </h3>
+                <p className="font-mono text-xs text-[#E0DDD8] tracking-wider leading-relaxed">
+                  {splitLeftSlot?.subHeading ||
+                    "Spun on century-old wooden pit-looms in Lalitpur using organic unbleached Himalayan cotton and natural madder dyes."}
+                </p>
+                <div className="pt-2">
+                  <Link
+                    href={splitLeftSlot?.ctaLink || "/about"}
+                    className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-ultra text-white border-b border-white pb-1 hover:text-luga-gold hover:border-luga-gold transition-colors"
+                  >
+                    <span>{splitLeftSlot?.ctaText || "VIEW CRAFTSMANSHIP"}</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
               </div>
             </div>
-          </div>
+          </ScrollReveal>
 
           {/* Right Frame: Heavyweight Cuts */}
-          <div className="group relative flex flex-col justify-end min-h-[580px] sm:min-h-[680px] p-8 sm:p-14 overflow-hidden bg-luga-surface dark:bg-luga-darkSurface">
-            <div className="absolute inset-0 w-full h-full">
-              <ManagedImage
-                slotKey="SPLIT_BANNER_RIGHT"
-                aspectRatio="3:4"
-                resolution="1200×1600px"
-                alt="Contemporary Kathmandu Streetwear"
-                className="w-full h-full border-none"
-                imageClassName="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent pointer-events-none" />
-            </div>
+          <ScrollReveal direction="up" delay={150} duration={750} className="h-full">
+            <div className="group relative flex flex-col justify-end min-h-[460px] sm:min-h-[580px] lg:min-h-[680px] p-6 sm:p-10 lg:p-14 overflow-hidden bg-luga-surface dark:bg-luga-darkSurface h-full">
+              <div className="absolute inset-0 w-full h-full">
+                <ManagedImage
+                  slotKey="SPLIT_BANNER_RIGHT"
+                  aspectRatio="3:4"
+                  resolution="1200×1600px"
+                  alt="Contemporary Kathmandu Streetwear"
+                  className="w-full h-full border-none"
+                  imageClassName="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent pointer-events-none" />
+              </div>
 
-            <div className="relative z-10 space-y-3 text-white max-w-md">
-              <span className="font-mono text-[10px] tracking-mega uppercase text-luga-gold">
-                ARCHITECTURAL SILHOUETTES
-              </span>
-              <h3 className="font-editorial text-3xl sm:text-4xl uppercase tracking-tight">
-                {splitRightSlot?.heading || "HEAVYWEIGHT CUTS"}
-              </h3>
-              <p className="font-mono text-xs text-[#E0DDD8] tracking-wider leading-relaxed">
-                {splitRightSlot?.subHeading ||
-                  "420–580 GSM custom-milled French terry, wool gabardine, and oversized boxy tailoring engineered to withstand time."}
-              </p>
-              <div className="pt-2">
-                <Link
-                  href={splitRightSlot?.ctaLink || "/shop?category=outerwear"}
-                  className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-ultra text-white border-b border-white pb-1 hover:text-luga-gold hover:border-luga-gold transition-colors"
-                >
-                  <span>{splitRightSlot?.ctaText || "SHOP OUTERWEAR"}</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </Link>
+              <div className="relative z-10 space-y-3 text-white max-w-md">
+                <span className="font-mono text-[10px] tracking-mega uppercase text-luga-gold">
+                  ARCHITECTURAL SILHOUETTES
+                </span>
+                <h3 className="font-editorial text-3xl sm:text-4xl uppercase tracking-tight">
+                  {splitRightSlot?.heading || "HEAVYWEIGHT CUTS"}
+                </h3>
+                <p className="font-mono text-xs text-[#E0DDD8] tracking-wider leading-relaxed">
+                  {splitRightSlot?.subHeading ||
+                    "420–580 GSM custom-milled French terry, wool gabardine, and oversized boxy tailoring engineered to withstand time."}
+                </p>
+                <div className="pt-2">
+                  <Link
+                    href={splitRightSlot?.ctaLink || "/shop?category=outerwear"}
+                    className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-ultra text-white border-b border-white pb-1 hover:text-luga-gold hover:border-luga-gold transition-colors"
+                  >
+                    <span>{splitRightSlot?.ctaText || "SHOP OUTERWEAR"}</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
               </div>
             </div>
-          </div>
+          </ScrollReveal>
         </div>
       </section>
 
       {/* 4. SHOP BY VOLUME / CAPSULE SECTION */}
       <section className="max-w-[1920px] mx-auto px-4 sm:px-8 py-20 sm:py-28">
-        <div className="text-center max-w-2xl mx-auto mb-16 space-y-2">
+        <ScrollReveal direction="up" className="text-center max-w-2xl mx-auto mb-16 space-y-2">
           <span className="font-mono text-[10px] sm:text-xs tracking-mega uppercase text-luga-muted dark:text-luga-darkMuted">
             NUMBERED ARCHIVES
           </span>
@@ -222,39 +229,40 @@ export default function HomePage() {
           <p className="font-mono text-xs text-luga-muted dark:text-luga-darkMuted tracking-wider">
             Each volume represents a distinct thematic dialogue between Kathmandu architectural history and modern garment engineering.
           </p>
-        </div>
+        </ScrollReveal>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
           {collections.map((col, idx) => (
-            <Link
-              key={col.id}
-              href={`/collections/${col.slug}`}
-              className="group block border border-luga-border dark:border-luga-darkBorder bg-luga-surface/40 dark:bg-luga-darkSurface/40 overflow-hidden hover:border-luga-ink dark:hover:border-luga-darkInk transition-all duration-300"
-            >
-              <div className="relative aspect-[4/5] overflow-hidden bg-luga-surface dark:bg-luga-darkSurface">
-                <ManagedImage
-                  src={col.coverImageUrl || (col.coverSlotKey ? getMediaSlot(col.coverSlotKey)?.imageUrl : undefined)}
-                  slotKey={col.coverSlotKey || `COLLECTION_${col.id}`}
-                  aspectRatio="4:5"
-                  resolution="1200×1500px"
-                  alt={col.title}
-                  imageClassName="transition-transform duration-700 group-hover:scale-105"
-                />
-              </div>
-
-              <div className="p-6 space-y-2">
-                <div className="flex items-center justify-between font-mono text-[10px] tracking-mega uppercase text-luga-crimson dark:text-luga-gold">
-                  <span>{col.volumeNumber}</span>
-                  <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+            <ScrollReveal key={col.id} direction="up" delay={idx * 120} duration={700}>
+              <Link
+                href={`/collections/${col.slug}`}
+                className="group block border border-luga-border dark:border-luga-darkBorder bg-luga-surface/40 dark:bg-luga-darkSurface/40 overflow-hidden hover:border-luga-ink dark:hover:border-luga-darkInk transition-all duration-300"
+              >
+                <div className="relative aspect-[4/5] overflow-hidden bg-luga-surface dark:bg-luga-darkSurface">
+                  <ManagedImage
+                    src={col.coverImageUrl || (col.coverSlotKey ? getMediaSlot(col.coverSlotKey)?.imageUrl : undefined)}
+                    slotKey={col.coverSlotKey || `COLLECTION_${col.id}`}
+                    aspectRatio="4:5"
+                    resolution="1200×1500px"
+                    alt={col.title}
+                    imageClassName="transition-transform duration-700 group-hover:scale-105"
+                  />
                 </div>
-                <h3 className="font-editorial text-2xl text-luga-ink dark:text-luga-darkInk group-hover:underline">
-                  {col.title}
-                </h3>
-                <p className="font-mono text-xs text-luga-muted dark:text-luga-darkMuted line-clamp-2 leading-relaxed">
-                  {col.description}
-                </p>
-              </div>
-            </Link>
+
+                <div className="p-6 space-y-2">
+                  <div className="flex items-center justify-between font-mono text-[10px] tracking-mega uppercase text-luga-crimson dark:text-luga-gold">
+                    <span>{col.volumeNumber}</span>
+                    <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                  </div>
+                  <h3 className="font-editorial text-2xl text-luga-ink dark:text-luga-darkInk group-hover:underline">
+                    {col.title}
+                  </h3>
+                  <p className="font-mono text-xs text-luga-muted dark:text-luga-darkMuted line-clamp-2 leading-relaxed">
+                    {col.description}
+                  </p>
+                </div>
+              </Link>
+            </ScrollReveal>
           ))}
         </div>
       </section>
@@ -262,7 +270,7 @@ export default function HomePage() {
       {/* 5. INTERACTIVE LOOKBOOK TEASER & "SHOP THE LOOK" */}
       <section className="w-full bg-[#111111] dark:bg-[#0D0D0D] text-white py-20 sm:py-28 border-t border-black/40 dark:border-white/10">
         <div className="max-w-[1920px] mx-auto px-4 sm:px-8">
-          <div className="flex flex-col md:flex-row md:items-end justify-between border-b border-white/10 pb-6 mb-12 gap-6">
+          <ScrollReveal direction="up" className="flex flex-col md:flex-row md:items-end justify-between border-b border-white/10 pb-6 mb-12 gap-6">
             <div>
               <span className="font-mono text-[10px] tracking-mega uppercase text-luga-gold">
                 EDITORIAL SPREAD // 35MM ARCHIVE
@@ -273,7 +281,7 @@ export default function HomePage() {
             </div>
 
             {/* Frame Selector Tabs */}
-            <div className="flex flex-wrap gap-2 font-mono text-[10px] tracking-ultra uppercase">
+            <div className="flex overflow-x-auto no-scrollbar sm:flex-wrap gap-2 font-mono text-[10px] tracking-ultra uppercase pb-2 sm:pb-0">
               {lookbookItems.map((item, idx) => (
                 <button
                   key={item.id}
@@ -288,27 +296,29 @@ export default function HomePage() {
                 </button>
               ))}
             </div>
-          </div>
+          </ScrollReveal>
 
           {/* Interactive Lookbook Frame Display */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             {/* Big Editorial Image Slot */}
-            <div className="lg:col-span-8 relative aspect-[16/10] sm:aspect-[16/9] bg-[#161616] overflow-hidden border border-white/10">
-              <ManagedImage
-                src={activeLook?.imageUrl}
-                slotName={`LOOKBOOK_FRAME_${activeLookbookIdx + 1}`}
-                aspectRatio="16:9"
-                resolution="1920×1080px"
-                alt={activeLook?.title}
-                className="w-full h-full border-none"
-              />
-              <div className="absolute bottom-4 left-4 font-mono text-[10px] tracking-wider uppercase px-3 py-1 bg-black/80 backdrop-blur-md text-white border border-white/20">
-                {activeLook?.volume}
+            <ScrollReveal direction="up" duration={800} className="lg:col-span-8">
+              <div className="relative aspect-[16/10] sm:aspect-[16/9] bg-[#161616] overflow-hidden border border-white/10">
+                <ManagedImage
+                  src={activeLook?.imageUrl}
+                  slotName={`LOOKBOOK_FRAME_${activeLookbookIdx + 1}`}
+                  aspectRatio="16:9"
+                  resolution="1920×1080px"
+                  alt={activeLook?.title}
+                  className="w-full h-full border-none"
+                />
+                <div className="absolute bottom-4 left-4 font-mono text-[10px] tracking-wider uppercase px-3 py-1 bg-black/80 backdrop-blur-md text-white border border-white/20">
+                  {activeLook?.volume}
+                </div>
               </div>
-            </div>
+            </ScrollReveal>
 
             {/* Garments in this Frame (Shop the Look) */}
-            <div className="lg:col-span-4 space-y-6">
+            <ScrollReveal direction="up" delay={150} duration={800} className="lg:col-span-4 space-y-6">
               <div className="space-y-2 border-b border-white/10 pb-4">
                 <span className="font-mono text-[10px] tracking-mega text-luga-gold uppercase">
                   LOOKBOOK FRAME 0{activeLookbookIdx + 1}
@@ -385,7 +395,7 @@ export default function HomePage() {
                   <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
               </div>
-            </div>
+            </ScrollReveal>
           </div>
         </div>
       </section>
@@ -393,7 +403,7 @@ export default function HomePage() {
       {/* 6. BRAND STORY / PATAN WEAVING MANIFESTO */}
       <section className="max-w-[1920px] mx-auto px-4 sm:px-8 py-20 sm:py-28">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-          <div className="lg:col-span-6 space-y-6">
+          <ScrollReveal direction="up" duration={750} className="lg:col-span-6 space-y-6">
             <span className="font-mono text-[10px] sm:text-xs tracking-mega uppercase text-luga-crimson dark:text-luga-gold">
               THE PATAN ATELIER MANIFESTO
             </span>
@@ -417,9 +427,9 @@ export default function HomePage() {
                 READ THE FULL MANIFESTO
               </Link>
             </div>
-          </div>
+          </ScrollReveal>
 
-          <div className="lg:col-span-6">
+          <ScrollReveal direction="up" delay={200} duration={850} className="lg:col-span-6">
             <div className="relative aspect-[4/3] bg-luga-surface dark:bg-luga-darkSurface border border-luga-border dark:border-luga-darkBorder overflow-hidden">
               <ManagedImage
                 slotKey="HERITAGE_STORY_BANNER"
@@ -429,7 +439,7 @@ export default function HomePage() {
                 className="w-full h-full border-none"
               />
             </div>
-          </div>
+          </ScrollReveal>
         </div>
       </section>
     </StorefrontLayout>

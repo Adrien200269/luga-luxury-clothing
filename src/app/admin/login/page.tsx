@@ -190,10 +190,19 @@ export default function AdminLoginPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-4 bg-luga-ink text-white dark:bg-luga-darkInk dark:text-black font-mono text-xs uppercase tracking-ultra hover:bg-luga-crimson dark:hover:bg-luga-gold transition-colors flex items-center justify-center gap-2 font-bold"
+              className="w-full py-4 bg-luga-ink text-white dark:bg-luga-darkInk dark:text-black font-mono text-xs uppercase tracking-ultra hover:bg-luga-crimson dark:hover:bg-luga-gold transition-colors flex items-center justify-center gap-2 font-bold disabled:opacity-90 disabled:cursor-wait"
             >
-              <span>{isSubmitting ? "AUTHENTICATING..." : "ENTER STUDIO CMS"}</span>
-              <ArrowRight className="w-4 h-4" />
+              {isSubmitting ? (
+                <>
+                  <Compass className="w-4 h-4 animate-spin-slow text-luga-crimson dark:text-luga-gold stroke-[1.5]" />
+                  <span>AUTHENTICATING ATELIER DIRECTOR...</span>
+                </>
+              ) : (
+                <>
+                  <span>ENTER STUDIO CMS</span>
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
             </button>
           </form>
 

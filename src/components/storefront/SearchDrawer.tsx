@@ -50,15 +50,15 @@ export const SearchDrawer: React.FC = () => {
       </div>
 
       {/* Input Field */}
-      <div className="max-w-4xl w-full mx-auto px-6 pt-10 pb-6">
+      <div className="max-w-4xl w-full mx-auto px-4 sm:px-6 pt-6 sm:pt-10 pb-4 sm:pb-6">
         <div className="relative flex items-center border-b-2 border-luga-ink dark:border-luga-darkInk pb-3">
-          <Search className="w-6 h-6 text-luga-muted dark:text-luga-darkMuted mr-4" />
+          <Search className="w-5 h-5 sm:w-6 sm:h-6 text-luga-muted dark:text-luga-darkMuted mr-3 sm:mr-4 flex-shrink-0" />
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="SEARCH BY GARMENT, GSM, SILHOUETTE, OR WEAVE..."
-            className="w-full bg-transparent font-editorial text-2xl sm:text-3xl text-luga-ink dark:text-luga-darkInk placeholder:text-luga-muted/50 dark:placeholder:text-luga-darkMuted/40 focus:outline-none"
+            placeholder="SEARCH GARMENTS, GSM, OR WEAVE..."
+            className="w-full bg-transparent font-editorial text-lg sm:text-2xl md:text-3xl text-luga-ink dark:text-luga-darkInk placeholder:text-luga-muted/50 dark:placeholder:text-luga-darkMuted/40 focus:outline-none"
             autoFocus
           />
           {query && (

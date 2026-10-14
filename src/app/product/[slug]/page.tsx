@@ -6,6 +6,7 @@ import Link from "next/link";
 import { StorefrontLayout } from "@/components/storefront/StorefrontLayout";
 import { ManagedImage } from "@/components/common/ManagedImage";
 import { ProductCard } from "@/components/storefront/ProductCard";
+import { ScrollReveal } from "@/components/common/ScrollReveal";
 import { useStore } from "@/lib/store-context";
 import { GarmentSize } from "@/types";
 import { formatNpr } from "@/lib/utils";
@@ -19,6 +20,7 @@ import {
   Check,
   Sparkles,
   ArrowRight,
+  Compass,
   X,
 } from "lucide-react";
 
@@ -32,6 +34,7 @@ export default function ProductDetailPage() {
   const [selectedSize, setSelectedSize] = useState<GarmentSize>("M");
   const [selectedImageIdx, setSelectedImageIdx] = useState(0);
   const [isAdded, setIsAdded] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
   const [sizeModalOpen, setSizeModalOpen] = useState(false);
 
   // Accordion states
@@ -78,18 +81,23 @@ export default function ProductDetailPage() {
   const isOutOfStock = currentVariant ? currentVariant.stockQuantity <= 0 : false;
 
   const handleAddToCart = () => {
-    addToCart({
-      productId: product.id,
-      title: product.title,
-      slug: product.slug,
-      size: selectedSize,
-      priceNpr: product.priceNpr,
-      quantity: 1,
-      primaryImageUrl: product.primaryImageUrl,
-      fabricGsm: product.fabricGsm,
-    });
-    setIsAdded(true);
-    setTimeout(() => setIsAdded(false), 2000);
+    if (isAdding) return;
+    setIsAdding(true);
+    setTimeout(() => {
+      addToCart({
+        productId: product.id,
+        title: product.title,
+        slug: product.slug,
+        size: selectedSize,
+        priceNpr: product.priceNpr,
+        quantity: 1,
+        primaryImageUrl: product.primaryImageUrl,
+        fabricGsm: product.fabricGsm,
+      });
+      setIsAdding(false);
+      setIsAdded(true);
+      setTimeout(() => setIsAdded(false), 2000);
+    }, 350);
   };
 
   // WhatsApp Concierge message pre-fill
@@ -106,12 +114,12 @@ export default function ProductDetailPage() {
   return (
     <StorefrontLayout>
       {/* Breadcrumb Micro-bar */}
-      <div className="max-w-[1920px] mx-auto px-4 sm:px-8 py-4 border-b border-luga-border/60 dark:border-luga-darkBorder/60 font-mono text-[10px] tracking-wider uppercase text-luga-muted dark:text-luga-darkMuted flex items-center gap-2">
-        <Link href="/" className="hover:text-luga-ink dark:hover:text-luga-darkInk">LUGA</Link>
+      <div className="max-w-[1920px] mx-auto px-4 sm:px-8 py-3 sm:py-4 border-b border-luga-border/60 dark:border-luga-darkBorder/60 font-mono text-[9px] sm:text-[10px] tracking-wider uppercase text-luga-muted dark:text-luga-darkMuted flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar whitespace-nowrap">
+        <Link href="/" className="hover:text-luga-ink dark:hover:text-luga-darkInk shrink-0">LUGA</Link>
         <span>/</span>
-        <Link href="/shop" className="hover:text-luga-ink dark:hover:text-luga-darkInk">ARCHIVE</Link>
+        <Link href="/shop" className="hover:text-luga-ink dark:hover:text-luga-darkInk shrink-0">ARCHIVE</Link>
         <span>/</span>
-        <Link href={`/shop?category=${product.category}`} className="hover:text-luga-ink dark:hover:text-luga-darkInk">{product.category}</Link>
+        <Link href={`/shop?category=${product.category}`} className="hover:text-luga-ink dark:hover:text-luga-darkInk shrink-0">{product.category}</Link>
         <span>/</span>
         <span className="text-luga-ink dark:text-luga-darkInk font-semibold truncate">{product.title}</span>
       </div>
@@ -182,16 +190,18 @@ export default function ProductDetailPage() {
               </div>
 
               {/* Price in NPR */}
-              <div className="flex items-baseline gap-3 border-y border-luga-border/70 dark:border-luga-darkBorder/70 py-4">
-                <span className="font-mono text-2xl font-semibold text-luga-ink dark:text-luga-darkInk">
-                  {formatNpr(product.priceNpr)}
-                </span>
-                {product.compareAtPriceNpr && (
-                  <span className="font-mono text-sm text-luga-muted line-through">
-                    {formatNpr(product.compareAtPriceNpr)}
+              <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-2 sm:gap-3 border-y border-luga-border/70 dark:border-luga-darkBorder/70 py-4">
+                <div className="flex items-baseline gap-3">
+                  <span className="font-mono text-2xl font-semibold text-luga-ink dark:text-luga-darkInk">
+                    {formatNpr(product.priceNpr)}
                   </span>
-                )}
-                <span className="font-mono text-[10px] tracking-wider uppercase text-emerald-600 dark:text-emerald-400 ml-auto">
+                  {product.compareAtPriceNpr && (
+                    <span className="font-mono text-sm text-luga-muted line-through">
+                      {formatNpr(product.compareAtPriceNpr)}
+                    </span>
+                  )}
+                </div>
+                <span className="font-mono text-[10px] tracking-wider uppercase text-emerald-600 dark:text-emerald-400">
                   TAX INCLUDED • COMPLIMENTARY LOCAL SHIPPING
                 </span>
               </div>
@@ -206,13 +216,13 @@ export default function ProductDetailPage() {
 
               {/* Size Selector + Nepal Size Guide */}
               <div className="space-y-3">
-                <div className="flex items-center justify-between font-mono text-xs">
+                <div className="flex flex-wrap items-center justify-between gap-2 font-mono text-xs">
                   <span className="uppercase tracking-wider text-luga-muted dark:text-luga-darkMuted">
-                    SELECT SIZE (NEPAL / GLOBAL FIT): <strong className="text-luga-ink dark:text-luga-darkInk">{selectedSize}</strong>
+                    SELECT SIZE: <strong className="text-luga-ink dark:text-luga-darkInk">{selectedSize}</strong>
                   </span>
                   <button
                     onClick={() => setSizeModalOpen(true)}
-                    className="flex items-center gap-1 text-luga-crimson dark:text-luga-gold hover:underline uppercase text-[11px] tracking-wider"
+                    className="flex items-center gap-1 text-luga-crimson dark:text-luga-gold hover:underline uppercase text-[11px] tracking-wider shrink-0"
                   >
                     <Ruler className="w-3.5 h-3.5" />
                     <span>NEPAL SIZE GUIDE</span>
@@ -244,7 +254,7 @@ export default function ProductDetailPage() {
                   })}
                 </div>
 
-                <div className="font-mono text-[10px] text-luga-muted dark:text-luga-darkMuted flex items-center justify-between">
+                <div className="font-mono text-[10px] text-luga-muted dark:text-luga-darkMuted flex flex-col sm:flex-row sm:items-center justify-between gap-1">
                   <span>
                     {isOutOfStock ? "CURRENTLY OUT OF STOCK" : "IN STOCK • DISPATCHES WITHIN 24 HOURS IN KTM"}
                   </span>
@@ -257,17 +267,24 @@ export default function ProductDetailPage() {
               {/* Action Buttons: Add to Bag + WhatsApp Concierge */}
               <div className="space-y-3 pt-2">
                 <button
-                  disabled={isOutOfStock}
+                  disabled={isOutOfStock || isAdding}
                   onClick={handleAddToCart}
-                  className={`w-full py-4 font-mono text-xs uppercase tracking-ultra flex items-center justify-center gap-3 transition-colors duration-300 ${
+                  className={`w-full py-4 px-4 font-mono text-xs uppercase tracking-ultra flex items-center justify-center gap-3 transition-colors duration-300 relative overflow-hidden ${
                     isOutOfStock
                       ? "bg-luga-surface dark:bg-luga-darkSurface text-luga-muted cursor-not-allowed border border-luga-border dark:border-luga-darkBorder"
                       : isAdded
                       ? "bg-emerald-600 text-white"
+                      : isAdding
+                      ? "bg-luga-crimson text-white dark:bg-luga-gold dark:text-black cursor-wait"
                       : "bg-luga-ink text-white dark:bg-luga-darkInk dark:text-black hover:bg-luga-crimson dark:hover:bg-luga-gold"
                   }`}
                 >
-                  {isAdded ? (
+                  {isAdding ? (
+                    <>
+                      <Compass className="w-4 h-4 animate-spin-slow text-white dark:text-black stroke-[1.5]" />
+                      <span>ACQUIRING ARCHIVAL FORM...</span>
+                    </>
+                  ) : isAdded ? (
                     <>
                       <Check className="w-4 h-4" />
                       <span>ADDED TO BAG</span>
@@ -284,9 +301,9 @@ export default function ProductDetailPage() {
                   href={waUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="w-full py-3.5 border border-luga-border hover:border-luga-ink dark:border-luga-darkBorder dark:hover:border-luga-darkInk font-mono text-xs uppercase tracking-ultra flex items-center justify-center gap-2 text-luga-ink dark:text-luga-darkInk hover:bg-luga-surface dark:hover:bg-luga-darkSurface transition-colors"
+                  className="w-full py-3.5 px-3 border border-luga-border hover:border-luga-ink dark:border-luga-darkBorder dark:hover:border-luga-darkInk font-mono text-[11px] sm:text-xs uppercase tracking-ultra flex items-center justify-center gap-2 text-luga-ink dark:text-luga-darkInk hover:bg-luga-surface dark:hover:bg-luga-darkSurface transition-colors text-center"
                 >
-                  <MessageCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  <MessageCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                   <span>ORDER VIA WHATSAPP CONCIERGE</span>
                 </a>
               </div>
@@ -376,7 +393,7 @@ export default function ProductDetailPage() {
 
         {/* RELATED GARMENTS SECTION */}
         {relatedProducts.length > 0 && (
-          <div className="mt-24 sm:mt-32 pt-12 border-t border-luga-border dark:border-luga-darkBorder">
+          <ScrollReveal direction="up" className="mt-24 sm:mt-32 pt-12 border-t border-luga-border dark:border-luga-darkBorder">
             <div className="flex items-center justify-between mb-8">
               <h3 className="font-editorial text-2xl sm:text-3xl uppercase tracking-tight text-luga-ink dark:text-luga-darkInk">
                 YOU MAY ALSO APPRECIATE
@@ -389,18 +406,20 @@ export default function ProductDetailPage() {
               </Link>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 sm:gap-x-8 gap-y-10">
-              {relatedProducts.map((p) => (
-                <ProductCard key={p.id} product={p} />
+              {relatedProducts.map((p, idx) => (
+                <ScrollReveal key={p.id} direction="up" delay={idx * 80} duration={650}>
+                  <ProductCard product={p} />
+                </ScrollReveal>
               ))}
             </div>
-          </div>
+          </ScrollReveal>
         )}
       </div>
 
       {/* NEPAL SIZE GUIDE MODAL */}
       {sizeModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-          <div className="bg-luga-bg dark:bg-luga-darkBg border border-luga-border dark:border-luga-darkBorder max-w-2xl w-full p-6 sm:p-8 shadow-2xl relative">
+          <div className="bg-luga-bg dark:bg-luga-darkBg border border-luga-border dark:border-luga-darkBorder max-w-2xl w-full max-h-[90vh] overflow-y-auto p-5 sm:p-8 shadow-2xl relative">
             <button
               onClick={() => setSizeModalOpen(false)}
               className="absolute top-4 right-4 text-luga-muted hover:text-luga-ink dark:text-luga-darkMuted dark:hover:text-luga-darkInk"
@@ -469,7 +488,7 @@ export default function ProductDetailPage() {
               </table>
             </div>
 
-            <div className="mt-6 pt-4 border-t border-luga-border dark:border-luga-darkBorder flex items-center justify-between font-mono text-[11px] text-luga-muted">
+            <div className="mt-6 pt-4 border-t border-luga-border dark:border-luga-darkBorder flex flex-col sm:flex-row sm:items-center justify-between gap-2 font-mono text-[11px] text-luga-muted">
               <span>Need custom Patan tailoring?</span>
               <a
                 href={waUrl}

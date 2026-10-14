@@ -5,7 +5,7 @@ import { AdminLayout } from "@/components/admin/AdminLayout";
 import { ManagedImage } from "@/components/common/ManagedImage";
 import { useStore } from "@/lib/store-context";
 import { LookbookItem } from "@/types";
-import { Plus, Edit2, Trash2, X, Upload, Check } from "lucide-react";
+import { Plus, Edit2, Trash2, X, Upload, Check, Compass } from "lucide-react";
 import { compressImage } from "@/lib/image-utils";
 
 export default function AdminLookbookPage() {
@@ -13,6 +13,7 @@ export default function AdminLookbookPage() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<LookbookItem | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   const [title, setTitle] = useState("");
   const [volume, setVolume] = useState("VOLUME I: KATHMANDU ARCHIVE");
@@ -40,30 +41,37 @@ export default function AdminLookbookPage() {
     setIsModalOpen(true);
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title) return;
 
-    if (editingItem) {
-      updateLookbookItem(editingItem.id, {
-        title,
-        volume,
-        caption,
-        imageUrl,
-        featuredProductIds,
-      });
-    } else {
-      addLookbookItem({
-        title,
-        volume,
-        caption,
-        imageUrl,
-        featuredProductIds,
-        sortOrder: lookbookItems.length + 1,
-      });
-    }
+    setIsSaving(true);
+    try {
+      if (editingItem) {
+        await updateLookbookItem(editingItem.id, {
+          title,
+          volume,
+          caption,
+          imageUrl,
+          featuredProductIds,
+        });
+      } else {
+        await addLookbookItem({
+          title,
+          volume,
+          caption,
+          imageUrl,
+          featuredProductIds,
+          sortOrder: lookbookItems.length + 1,
+        });
+      }
 
-    setIsModalOpen(false);
+      setIsModalOpen(false);
+    } catch (err) {
+      console.error("Save lookbook error:", err);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const toggleProductTag = (prodId: string) => {
@@ -187,11 +195,11 @@ export default function AdminLookbookPage() {
 
         {/* Modal */}
         {isModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm overflow-y-auto">
-            <div className="bg-luga-bg dark:bg-[#121212] border border-luga-border dark:border-luga-darkBorder max-w-2xl w-full p-6 sm:p-8 shadow-2xl relative my-8">
+          <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-sm overflow-y-auto">
+            <div className="bg-luga-bg dark:bg-[#121212] border border-luga-border dark:border-luga-darkBorder max-w-2xl w-full max-h-[92vh] overflow-y-auto p-5 sm:p-8 shadow-2xl relative my-auto">
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="absolute top-5 right-5 text-luga-muted hover:text-luga-ink"
+                className="absolute top-4 right-4 text-luga-muted hover:text-luga-ink"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -266,7 +274,7 @@ export default function AdminLookbookPage() {
                   <label className="text-[10px] text-luga-muted uppercase">
                     TAG GARMENTS FOR &quot;SHOP THE LOOK&quot;
                   </label>
-                  <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto border border-luga-border p-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto border border-luga-border p-2">
                     {products.map((p) => {
                       const isTagged = featuredProductIds.includes(p.id);
                       return (
@@ -288,19 +296,27 @@ export default function AdminLookbookPage() {
                   </div>
                 </div>
 
-                <div className="flex justify-end gap-3 pt-4 border-t border-luga-border">
+                <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4 border-t border-luga-border">
                   <button
                     type="button"
                     onClick={() => setIsModalOpen(false)}
-                    className="px-5 py-2.5 border border-luga-border uppercase"
+                    className="w-full sm:w-auto px-5 py-2.5 border border-luga-border uppercase text-center"
                   >
                     CANCEL
                   </button>
                   <button
                     type="submit"
-                    className="px-6 py-2.5 bg-luga-ink text-white dark:bg-luga-darkInk dark:text-black uppercase tracking-ultra"
+                    disabled={isSaving}
+                    className="w-full sm:w-auto px-6 py-2.5 bg-luga-ink text-white dark:bg-luga-darkInk dark:text-black uppercase tracking-ultra text-center flex items-center justify-center gap-2 disabled:opacity-75 disabled:cursor-wait"
                   >
-                    SAVE FRAME
+                    {isSaving ? (
+                      <>
+                        <Compass className="w-3.5 h-3.5 animate-spin-slow text-luga-crimson dark:text-luga-gold" />
+                        <span>SYNCING TO SUPABASE...</span>
+                      </>
+                    ) : (
+                      <span>SAVE FRAME</span>
+                    )}
                   </button>
                 </div>
               </form>

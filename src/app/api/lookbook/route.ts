@@ -1,6 +1,23 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/services/db";
 
+function sanitizeLookbookData(data: Record<string, any>) {
+  const sanitized: Record<string, any> = {};
+
+  if (data.title !== undefined) sanitized.title = String(data.title).trim();
+  if (data.volume !== undefined) sanitized.volume = String(data.volume).trim();
+  if (data.imageUrl !== undefined) sanitized.imageUrl = data.imageUrl || null;
+  if (data.caption !== undefined) sanitized.caption = data.caption ? String(data.caption) : null;
+  if (data.featuredProductIds !== undefined && Array.isArray(data.featuredProductIds)) {
+    sanitized.featuredProductIds = data.featuredProductIds.filter(Boolean);
+  }
+  if (data.sortOrder !== undefined) {
+    sanitized.sortOrder = Math.round(Number(data.sortOrder) || 0);
+  }
+
+  return sanitized;
+}
+
 export async function GET() {
   try {
     const items = await prisma.lookbookItem.findMany({
@@ -19,10 +36,21 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { id, createdAt, ...itemData } = body;
+    const sanitizedData = sanitizeLookbookData(body);
+
+    if (!sanitizedData.title) {
+      return NextResponse.json(
+        { success: false, error: "Title is required" },
+        { status: 400 }
+      );
+    }
+
+    if (!sanitizedData.volume) {
+      sanitizedData.volume = "VOLUME I: PATAN ARCHIVE";
+    }
 
     const item = await prisma.lookbookItem.create({
-      data: itemData,
+      data: sanitizedData as any,
     });
 
     return NextResponse.json({ success: true, data: item }, { status: 201 });
@@ -38,7 +66,7 @@ export async function POST(req: Request) {
 export async function PUT(req: Request) {
   try {
     const body = await req.json();
-    const { id, createdAt, ...itemData } = body;
+    const id = body.id;
 
     if (!id) {
       return NextResponse.json(
@@ -47,9 +75,11 @@ export async function PUT(req: Request) {
       );
     }
 
+    const sanitizedData = sanitizeLookbookData(body);
+
     const updated = await prisma.lookbookItem.update({
       where: { id },
-      data: itemData,
+      data: sanitizedData,
     });
 
     return NextResponse.json({ success: true, data: updated });

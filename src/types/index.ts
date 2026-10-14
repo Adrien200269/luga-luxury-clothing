@@ -82,7 +82,7 @@ export interface Product {
   priceNpr: number;
   compareAtPriceNpr?: number;
   category: ProductCategory;
-  collectionId: string;
+  collectionId?: string;
   collectionTitle?: string;
   primaryImageUrl: string | null;
   hoverImageUrl: string | null;
