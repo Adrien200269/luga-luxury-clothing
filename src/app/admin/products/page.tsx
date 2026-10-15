@@ -544,7 +544,7 @@ export default function AdminProductsPage() {
                         Upload Front File
                         <input
                           type="file"
-                          accept="image/*"
+                          accept="image/*,video/mp4,video/webm,video/quicktime"
                           className="hidden"
                           onChange={(e) => {
                             const f = e.target.files?.[0];
@@ -554,7 +554,7 @@ export default function AdminProductsPage() {
                       </label>
                       <input
                         type="url"
-                        placeholder="Or paste image URL..."
+                        placeholder="Or paste media / video URL..."
                         value={primaryImageUrl || ""}
                         onChange={(e) => setPrimaryImageUrl(e.target.value)}
                         className="w-full bg-transparent border border-luga-border p-1.5 text-[10px] focus:outline-none"
@@ -580,7 +580,7 @@ export default function AdminProductsPage() {
                         Upload Back File
                         <input
                           type="file"
-                          accept="image/*"
+                          accept="image/*,video/mp4,video/webm,video/quicktime"
                           className="hidden"
                           onChange={(e) => {
                             const f = e.target.files?.[0];
@@ -590,7 +590,7 @@ export default function AdminProductsPage() {
                       </label>
                       <input
                         type="url"
-                        placeholder="Or paste image URL..."
+                        placeholder="Or paste media / video URL..."
                         value={hoverImageUrl || ""}
                         onChange={(e) => setHoverImageUrl(e.target.value)}
                         className="w-full bg-transparent border border-luga-border p-1.5 text-[10px] focus:outline-none"

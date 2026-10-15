@@ -51,25 +51,7 @@ export function setUploadcarePublicKey(key: string): void {
   }
 }
 
-/**
- * Checks if a given media URL is a video
- */
-export function isVideoUrl(url?: string | null): boolean {
-  if (!url) return false;
-  const clean = url.split("?")[0].toLowerCase();
-  return (
-    clean.endsWith(".mp4") ||
-    clean.endsWith(".webm") ||
-    clean.endsWith(".mov") ||
-    clean.endsWith(".m4v") ||
-    clean.endsWith(".ogg") ||
-    clean.endsWith(".mkv") ||
-    clean.includes("video/") ||
-    clean.startsWith("data:video/") ||
-    // Uploadcare video transformation or extension in path
-    /\/video(\/|\.)/.test(clean)
-  );
-}
+export { isVideoUrl, getVideoInfo, getYouTubeVideoId, getVimeoVideoId } from "./video-utils";
 
 export interface UploadcareUploadResult {
   cdnUrl: string;

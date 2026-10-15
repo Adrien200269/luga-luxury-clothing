@@ -23,6 +23,7 @@ import {
 import {
   uploadToUploadcare,
   isVideoUrl,
+  getVideoInfo,
   getUploadcarePublicKey,
   setUploadcarePublicKey,
 } from "@/lib/uploadcare";
@@ -239,7 +240,8 @@ export default function AdminSiteMediaPage() {
           {filteredSlots.map((slot) => {
             const isSlotUploading = uploadingSlot === slot.slotKey;
             const slotHasError = uploadError?.slotKey === slot.slotKey;
-            const isVideo = isVideoUrl(slot.imageUrl);
+            const videoInfo = getVideoInfo(slot.imageUrl);
+            const isVideo = videoInfo.isVideo;
             const isDragOver = dragOverSlot === slot.slotKey;
 
             return (
@@ -302,7 +304,7 @@ export default function AdminSiteMediaPage() {
                         {isVideo ? (
                           <>
                             <VideoIcon className="w-3 h-3" />
-                            <span>CUSTOM VIDEO ACTIVE</span>
+                            <span>CUSTOM VIDEO ({videoInfo.providerLabel.toUpperCase()})</span>
                           </>
                         ) : (
                           <>
@@ -429,7 +431,7 @@ export default function AdminSiteMediaPage() {
                     <div className="flex gap-2">
                       <input
                         type="url"
-                        placeholder="https://ucarecdn.com/... or https://..."
+                        placeholder="https://... (Direct MP4, YouTube, Vimeo, or Uploadcare CDN URL)"
                         value={slot.imageUrl || ""}
                         onChange={(e) =>
                           updateMediaSlot(slot.slotKey, { imageUrl: e.target.value })
@@ -446,6 +448,9 @@ export default function AdminSiteMediaPage() {
                         </button>
                       )}
                     </div>
+                    <span className="text-[9px] text-luga-muted block">
+                      Supports direct MP4/WebM videos, YouTube (watch, shorts, embed), and Vimeo links.
+                    </span>
                   </div>
 
                   {/* Editable Headline & Subheading */}

@@ -258,7 +258,7 @@ export default function AdminLookbookPage() {
                       <span>Choose File</span>
                       <input
                         type="file"
-                        accept="image/*"
+                        accept="image/*,video/mp4,video/webm,video/quicktime"
                         className="hidden"
                         onChange={(e) => {
                           const f = e.target.files?.[0];
@@ -268,7 +268,7 @@ export default function AdminLookbookPage() {
                     </label>
                     <input
                       type="url"
-                      placeholder="Or paste URL..."
+                      placeholder="Or paste image or video URL (MP4, YouTube, Vimeo)..."
                       value={imageUrl || ""}
                       onChange={(e) => setImageUrl(e.target.value)}
                       className="flex-1 bg-transparent border border-luga-border p-2 text-xs focus:outline-none"

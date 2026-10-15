@@ -1,12 +1,19 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { useStore } from "@/lib/store-context";
 import { cn } from "@/lib/utils";
-import { Camera, Compass, Volume2, VolumeX, Play, Pause } from "lucide-react";
-
-import { isVideoUrl } from "@/lib/uploadcare";
+import {
+  Camera,
+  Compass,
+  Volume2,
+  VolumeX,
+  Play,
+  Pause,
+  ExternalLink,
+} from "lucide-react";
+import { getVideoInfo, isVideoUrl } from "@/lib/video-utils";
 
 interface ManagedImageProps {
   slotKey?: string;
@@ -44,8 +51,9 @@ export const ManagedImage: React.FC<ManagedImageProps> = ({
   const [isLoaded, setIsLoaded] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
   const [isPlaying, setIsPlaying] = useState(true);
-  const imgRef = React.useRef<HTMLImageElement>(null);
-  const videoRef = React.useRef<HTMLVideoElement>(null);
+  const imgRef = useRef<HTMLImageElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   // Look up slot data if slotKey is provided
   const slotData = slotKey ? getMediaSlot(slotKey) : undefined;
@@ -55,29 +63,28 @@ export const ManagedImage: React.FC<ManagedImageProps> = ({
   const resolvedSlotName = slotName || slotData?.label || slotKey || "EDITORIAL_SLOT";
   const resolvedAspectRatio = aspectRatio || slotData?.aspectRatio || "4/5";
   const resolvedResolution = resolution || slotData?.resolution || "1200×1500px";
-  const isVideo = isVideoUrl(resolvedSrc);
 
-  // Handle video autoplay policy & reload
+  // Comprehensive video intelligence
+  const videoInfo = getVideoInfo(resolvedSrc);
+  const isVideo = videoInfo.isVideo;
+
+  // Handle direct video autoplay policy & playback
   useEffect(() => {
+    if (!isVideo || videoInfo.provider !== "direct") return;
     const video = videoRef.current;
-    if (!video || !isVideo || !resolvedSrc) return;
+    if (!video || !resolvedSrc) return;
 
-    // Critical for browser autoplay: must set DOM properties directly
+    // Critical for browser autoplay: set DOM properties directly
     video.defaultMuted = true;
     video.muted = isMuted;
     video.playsInline = true;
 
-    try {
-      video.load();
-    } catch {}
-
-    const playVideo = async () => {
+    const attemptPlay = async () => {
       try {
         await video.play();
         setIsPlaying(true);
       } catch (err) {
-        console.warn("Autoplay notice:", err);
-        // Autoplay policy prevented playback: force muted & retry
+        // Autoplay policy prevented playback: ensure muted & retry
         video.muted = true;
         setIsMuted(true);
         try {
@@ -91,16 +98,16 @@ export const ManagedImage: React.FC<ManagedImageProps> = ({
 
     if (video.readyState >= 2) {
       setIsLoaded(true);
-      playVideo();
+      attemptPlay();
     } else {
       const handleCanPlay = () => {
         setIsLoaded(true);
-        playVideo();
+        attemptPlay();
       };
       video.addEventListener("canplay", handleCanPlay, { once: true });
       return () => video.removeEventListener("canplay", handleCanPlay);
     }
-  }, [resolvedSrc, isVideo]);
+  }, [resolvedSrc, isVideo, videoInfo.provider]);
 
   // Check if media is already loaded / cached, and set a safety fallback
   useEffect(() => {
@@ -128,32 +135,83 @@ export const ManagedImage: React.FC<ManagedImageProps> = ({
 
   const togglePlay = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const video = videoRef.current;
-    if (!video) return;
 
-    if (video.paused) {
-      video.play().then(() => setIsPlaying(true)).catch(() => {});
-    } else {
-      video.pause();
-      setIsPlaying(false);
+    if (videoInfo.provider === "direct") {
+      const video = videoRef.current;
+      if (!video) return;
+
+      if (video.paused) {
+        video.play().then(() => setIsPlaying(true)).catch(() => {});
+      } else {
+        video.pause();
+        setIsPlaying(false);
+      }
+    } else if (videoInfo.provider === "youtube") {
+      const iframe = iframeRef.current;
+      if (!iframe?.contentWindow) return;
+      const nextPlaying = !isPlaying;
+      iframe.contentWindow.postMessage(
+        JSON.stringify({
+          event: "command",
+          func: nextPlaying ? "playVideo" : "pauseVideo",
+          args: [],
+        }),
+        "*"
+      );
+      setIsPlaying(nextPlaying);
+    } else if (videoInfo.provider === "vimeo") {
+      const iframe = iframeRef.current;
+      if (!iframe?.contentWindow) return;
+      const nextPlaying = !isPlaying;
+      iframe.contentWindow.postMessage(
+        JSON.stringify({
+          method: nextPlaying ? "play" : "pause",
+        }),
+        "*"
+      );
+      setIsPlaying(nextPlaying);
     }
   };
 
   const toggleSound = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const video = videoRef.current;
-    if (!video) return;
-
     const nextMuted = !isMuted;
-    video.muted = nextMuted;
     setIsMuted(nextMuted);
 
-    if (video.paused) {
-      video.play().then(() => setIsPlaying(true)).catch(() => {});
+    if (videoInfo.provider === "direct") {
+      const video = videoRef.current;
+      if (!video) return;
+      video.muted = nextMuted;
+      if (video.paused) {
+        video.play().then(() => setIsPlaying(true)).catch(() => {});
+      }
+    } else if (videoInfo.provider === "youtube") {
+      const iframe = iframeRef.current;
+      if (iframe?.contentWindow) {
+        iframe.contentWindow.postMessage(
+          JSON.stringify({
+            event: "command",
+            func: nextMuted ? "mute" : "unMute",
+            args: [],
+          }),
+          "*"
+        );
+      }
+    } else if (videoInfo.provider === "vimeo") {
+      const iframe = iframeRef.current;
+      if (iframe?.contentWindow) {
+        iframe.contentWindow.postMessage(
+          JSON.stringify({
+            method: "setVolume",
+            value: nextMuted ? 0 : 1,
+          }),
+          "*"
+        );
+      }
     }
   };
 
-  // If we have a valid image source and it hasn't errored
+  // If we have a valid media source and it hasn't errored
   if (resolvedSrc && !imageError) {
     return (
       <div
@@ -201,28 +259,57 @@ export const ManagedImage: React.FC<ManagedImageProps> = ({
         )}
 
         {isVideo ? (
-          <div className="relative w-full h-full">
-            <video
-              ref={videoRef}
-              src={resolvedSrc}
-              autoPlay
-              loop
-              muted
-              playsInline
-              preload="auto"
-              className={cn(
-                "w-full h-full object-cover transition-opacity duration-300 ease-out cursor-pointer",
-                isLoaded ? "opacity-100 scale-100" : "opacity-0 scale-[1.01]",
-                "group-hover:scale-105",
-                imageClassName
-              )}
-              onClick={togglePlay}
-              onLoadedData={() => setIsLoaded(true)}
-              onCanPlay={() => setIsLoaded(true)}
-              onPlay={() => setIsPlaying(true)}
-              onPause={() => setIsPlaying(false)}
-              onError={() => setImageError(true)}
-            />
+          <div className="relative w-full h-full bg-black overflow-hidden flex items-center justify-center">
+            {videoInfo.provider === "direct" ? (
+              <video
+                ref={videoRef}
+                autoPlay
+                loop
+                muted={isMuted}
+                playsInline
+                preload="auto"
+                className={cn(
+                  "w-full h-full object-cover transition-opacity duration-300 ease-out cursor-pointer",
+                  isLoaded ? "opacity-100 scale-100" : "opacity-0 scale-[1.01]",
+                  "group-hover:scale-105",
+                  imageClassName
+                )}
+                onClick={togglePlay}
+                onLoadedData={() => setIsLoaded(true)}
+                onCanPlay={() => setIsLoaded(true)}
+                onPlay={() => setIsPlaying(true)}
+                onPause={() => setIsPlaying(false)}
+                onError={(e) => {
+                  const err = (e.currentTarget as HTMLVideoElement)?.error;
+                  // Code 1 is MEDIA_ERR_ABORTED - never trigger error on abort
+                  if (err && err.code === 1) return;
+                  console.warn("Direct video playback notice:", resolvedSrc, err);
+                  setImageError(true);
+                }}
+              >
+                <source src={resolvedSrc} type={videoInfo.mimeType || "video/mp4"} />
+                <source src={resolvedSrc} />
+              </video>
+            ) : (
+              /* Embedded YouTube / Vimeo / Google Drive Video */
+              <div className="relative w-full h-full overflow-hidden">
+                <iframe
+                  ref={iframeRef}
+                  src={videoInfo.embedUrl!}
+                  title={alt || resolvedSlotName}
+                  className={cn(
+                    "absolute inset-0 w-full h-full border-0 transition-opacity duration-500",
+                    // Scale slightly to eliminate letterbox/pillarbox bars on cinematic ratios
+                    "scale-[1.03] pointer-events-auto",
+                    isLoaded ? "opacity-100" : "opacity-0",
+                    imageClassName
+                  )}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                  onLoad={() => setIsLoaded(true)}
+                />
+              </div>
+            )}
 
             {/* Video Audio & Playback Controls Overlay (Bottom Right) */}
             <div className="absolute bottom-3 right-3 z-20 flex items-center gap-1.5 opacity-90 hover:opacity-100 transition-opacity">
@@ -248,10 +335,25 @@ export const ManagedImage: React.FC<ManagedImageProps> = ({
                   <Volume2 className="w-3.5 h-3.5 text-luga-gold" />
                 )}
               </button>
+
+              {/* External Source Link (for YouTube / Vimeo) */}
+              {(videoInfo.provider === "youtube" || videoInfo.provider === "vimeo") && (
+                <a
+                  href={videoInfo.originalUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="p-1.5 bg-black/75 hover:bg-black text-white border border-white/20 transition-colors shadow-sm"
+                  title={`Open on ${videoInfo.providerLabel}`}
+                  aria-label={`Open on ${videoInfo.providerLabel}`}
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              )}
             </div>
 
-            {/* Large Center Play Overlay When Paused */}
-            {!isPlaying && isLoaded && (
+            {/* Large Center Play Overlay When Paused (Direct Video) */}
+            {!isPlaying && isLoaded && videoInfo.provider === "direct" && (
               <div
                 onClick={togglePlay}
                 className="absolute inset-0 z-10 flex items-center justify-center bg-black/30 backdrop-blur-[1px] cursor-pointer"
@@ -342,8 +444,8 @@ export const ManagedImage: React.FC<ManagedImageProps> = ({
       <div className="relative z-10 flex flex-col items-center text-center my-auto px-2 max-w-[90%]">
         {/* Architectural Crosshair Reticle */}
         <div className="relative mb-3 flex items-center justify-center w-12 h-12 rounded-full border border-dashed border-luga-muted/30 dark:border-luga-darkMuted/30">
-          <div className="absolute w-6 h-[1px] bg-luga-muted/40 dark:bg-luga-darkMuted/40" />
-          <div className="absolute h-6 w-[1px] bg-luga-muted/40 dark:bg-luga-darkMuted/40" />
+          <div className="absolute w-6 h-[1px] bg-luga-muted/40 dark:border-luga-darkMuted/40" />
+          <div className="absolute h-6 w-[1px] bg-luga-muted/40 dark:border-luga-darkMuted/40" />
           <Camera className="w-4 h-4 text-luga-muted/70 dark:text-luga-darkMuted/70" />
         </div>
 
