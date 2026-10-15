@@ -1,16 +1,69 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { ManagedImage } from "@/components/common/ManagedImage";
 import { useStore } from "@/lib/store-context";
-import { LookbookItem } from "@/types";
-import { Plus, Edit2, Trash2, X, Upload, Check, Compass } from "lucide-react";
+import { LookbookItem, LookbookPageData } from "@/types";
+import { Plus, Edit2, Trash2, X, Upload, Check, Compass, RotateCcw, Save, Video as VideoIcon, Film, ExternalLink } from "lucide-react";
 import { compressImage } from "@/lib/image-utils";
 import { uploadToUploadcare } from "@/lib/uploadcare";
+import { getVideoInfo } from "@/lib/video-utils";
 
 export default function AdminLookbookPage() {
-  const { lookbookItems, addLookbookItem, updateLookbookItem, deleteLookbookItem, products } = useStore();
+  const {
+    lookbookItems,
+    addLookbookItem,
+    updateLookbookItem,
+    deleteLookbookItem,
+    products,
+    getLookbookContent,
+    updateLookbookContent,
+    resetLookbookContent,
+    getMediaSlot,
+    updateMediaSlot,
+    isSyncing,
+  } = useStore();
+
+  // Lookbook Page Editorial State
+  const [pageData, setPageData] = useState<LookbookPageData>(getLookbookContent());
+  const [isSavingPage, setIsSavingPage] = useState(false);
+  const [pageSavedSuccess, setPageSavedSuccess] = useState(false);
+  const [uploadingHighlight, setUploadingHighlight] = useState(false);
+
+  const highlightSlot = getMediaSlot("LOOKBOOK_HIGHLIGHT_BANNER");
+  const highlightVideo = getVideoInfo(highlightSlot?.imageUrl);
+
+  useEffect(() => {
+    setPageData(getLookbookContent());
+  }, [getLookbookContent]);
+
+  const handlePageFieldChange = (field: keyof LookbookPageData, value: string) => {
+    setPageData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleSavePageData = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    setIsSavingPage(true);
+    try {
+      await updateLookbookContent(pageData);
+      setPageSavedSuccess(true);
+      setTimeout(() => setPageSavedSuccess(false), 3500);
+    } catch (err) {
+      console.error("Save lookbook editorial error:", err);
+    } finally {
+      setIsSavingPage(false);
+    }
+  };
+
+  const handleResetPageData = async () => {
+    if (confirm("Reset Lookbook Page editorial narrative and film reel to default copy?")) {
+      await resetLookbookContent();
+      setPageData(getLookbookContent());
+      setPageSavedSuccess(true);
+      setTimeout(() => setPageSavedSuccess(false), 3500);
+    }
+  };
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<LookbookItem | null>(null);
@@ -113,13 +166,169 @@ export default function AdminLookbookPage() {
             </p>
           </div>
 
-          <button
-            onClick={openCreate}
-            className="px-6 py-3 bg-luga-ink text-white dark:bg-luga-darkInk dark:text-black font-mono text-xs uppercase tracking-ultra flex items-center gap-2 hover:bg-luga-crimson dark:hover:bg-luga-gold transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            <span>ADD LOOKBOOK FRAME</span>
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={openCreate}
+              className="px-5 py-2.5 bg-luga-ink text-white dark:bg-luga-darkInk dark:text-black font-mono text-xs uppercase tracking-ultra flex items-center gap-2 hover:bg-luga-crimson dark:hover:bg-luga-gold transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              <span>NEW LOOK FRAME</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Page Saved Banner */}
+        {pageSavedSuccess && (
+          <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 text-emerald-800 dark:text-emerald-300 font-mono text-xs flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              <span className="font-bold tracking-wider uppercase">
+                LOOKBOOK EDITORIAL HEADER & FILM REEL PUBLISHED TO SUPABASE
+              </span>
+            </div>
+            <a
+              href="/lookbook"
+              target="_blank"
+              rel="noreferrer"
+              className="underline flex items-center gap-1 hover:opacity-80"
+            >
+              <span>VIEW LIVE LOOKBOOK</span>
+              <ExternalLink className="w-3 h-3" />
+            </a>
+          </div>
+        )}
+
+        {/* 01 // LOOKBOOK EDITORIAL HEADER & FILM REEL CMS */}
+        <section className="p-6 sm:p-8 bg-luga-bg dark:bg-[#0F0F0F] border border-luga-border dark:border-luga-darkBorder space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-luga-border/50 pb-3 gap-2">
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-0.5 bg-luga-crimson/10 text-luga-crimson dark:bg-luga-gold/10 dark:text-luga-gold font-bold text-[10px]">
+                PART 01
+              </span>
+              <h2 className="text-sm uppercase tracking-mega font-bold text-luga-ink dark:text-luga-darkInk">
+                EDITORIAL PAGE HEADER & 35MM CINEMATIC FILM REEL CMS
+              </h2>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleResetPageData}
+                className="px-3 py-1.5 border border-luga-border hover:border-luga-crimson hover:text-luga-crimson text-[10px] uppercase font-mono transition-colors"
+              >
+                RESET
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSavePageData()}
+                disabled={isSavingPage}
+                className="px-4 py-1.5 bg-luga-ink text-white dark:bg-luga-darkInk dark:text-black hover:bg-luga-crimson dark:hover:bg-luga-gold text-[10px] uppercase font-bold tracking-wider flex items-center gap-1.5 transition-colors disabled:opacity-50"
+              >
+                <Save className="w-3.5 h-3.5" />
+                <span>SAVE EDITORIAL</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            {/* Cinematic Highlight Banner Media */}
+            <div className="lg:col-span-5 space-y-3">
+              <div className="relative aspect-[21/9] bg-black border border-luga-border overflow-hidden">
+                <ManagedImage
+                  slotKey="LOOKBOOK_HIGHLIGHT_BANNER"
+                  aspectRatio="21:9"
+                  resolution="2560×1100px"
+                  alt="Cinematic Film Reel"
+                  className="w-full h-full border-none"
+                />
+                {highlightVideo.isVideo && (
+                  <div className="absolute top-2 left-2 px-2 py-0.5 bg-black/80 text-white text-[9px] flex items-center gap-1 font-mono">
+                    <VideoIcon className="w-2.5 h-2.5 text-luga-gold" />
+                    <span>{highlightVideo.providerLabel.toUpperCase()}</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] text-luga-muted uppercase">
+                  CINEMATIC FILM REEL URL (MP4, WEBM, YOUTUBE, VIMEO)
+                </label>
+                <input
+                  type="text"
+                  value={highlightSlot?.imageUrl || ""}
+                  onChange={(e) => updateMediaSlot("LOOKBOOK_HIGHLIGHT_BANNER", { imageUrl: e.target.value })}
+                  placeholder="https://... or YouTube/Vimeo"
+                  className="w-full bg-transparent border border-luga-border dark:border-luga-darkBorder p-2 text-xs text-luga-ink dark:text-luga-darkInk focus:outline-none"
+                />
+              </div>
+            </div>
+
+            {/* Header Text Inputs */}
+            <div className="lg:col-span-7 space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] text-luga-muted uppercase">PAGE EYEBROW TAG</label>
+                  <input
+                    type="text"
+                    value={pageData.lookbookTag}
+                    onChange={(e) => handlePageFieldChange("lookbookTag", e.target.value)}
+                    className="w-full bg-transparent border border-luga-border dark:border-luga-darkBorder p-2 text-xs text-luga-ink dark:text-luga-darkInk focus:outline-none"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] text-luga-muted uppercase">PAGE MAIN TITLE</label>
+                  <input
+                    type="text"
+                    value={pageData.lookbookHeading}
+                    onChange={(e) => handlePageFieldChange("lookbookHeading", e.target.value)}
+                    className="w-full bg-transparent border border-luga-border dark:border-luga-darkBorder p-2 text-xs font-editorial text-luga-ink dark:text-luga-darkInk focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] text-luga-muted uppercase">PAGE DESCRIPTION COPY</label>
+                <textarea
+                  rows={2}
+                  value={pageData.lookbookDescription}
+                  onChange={(e) => handlePageFieldChange("lookbookDescription", e.target.value)}
+                  className="w-full bg-transparent border border-luga-border dark:border-luga-darkBorder p-2 text-xs text-luga-ink dark:text-luga-darkInk focus:outline-none leading-relaxed"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-luga-border/40">
+                <div className="space-y-1">
+                  <label className="text-[10px] text-luga-muted uppercase">FILM REEL TITLE</label>
+                  <input
+                    type="text"
+                    value={pageData.highlightHeading}
+                    onChange={(e) => handlePageFieldChange("highlightHeading", e.target.value)}
+                    className="w-full bg-transparent border border-luga-border dark:border-luga-darkBorder p-2 text-xs text-luga-ink dark:text-luga-darkInk focus:outline-none"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] text-luga-muted uppercase">FILM REEL SUBTITLE / CREDITS</label>
+                  <input
+                    type="text"
+                    value={pageData.highlightDescription}
+                    onChange={(e) => handlePageFieldChange("highlightDescription", e.target.value)}
+                    className="w-full bg-transparent border border-luga-border dark:border-luga-darkBorder p-2 text-xs text-luga-ink dark:text-luga-darkInk focus:outline-none"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 02 // 35MM ANALOG LOOKBOOK FRAMES */}
+        <div className="flex items-center justify-between border-b border-luga-border pb-2 pt-4">
+          <div className="flex items-center gap-2">
+            <span className="px-2 py-0.5 bg-luga-crimson/10 text-luga-crimson dark:bg-luga-gold/10 dark:text-luga-gold font-bold text-[10px]">
+              PART 02
+            </span>
+            <h2 className="text-sm uppercase tracking-mega font-bold text-luga-ink dark:text-luga-darkInk">
+              INDIVIDUAL ANALOG LOOKBOOK FRAMES ({lookbookItems.length})
+            </h2>
+          </div>
         </div>
 
         {/* Frames Grid */}

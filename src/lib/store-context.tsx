@@ -13,6 +13,10 @@ import {
   SiteSettings,
   AdminUser,
   AboutPageData,
+  HomePageData,
+  ShopPageData,
+  LookbookPageData,
+  FooterPageData,
 } from "@/types";
 import {
   INITIAL_COLLECTIONS,
@@ -22,6 +26,10 @@ import {
   INITIAL_SAMPLE_ORDERS,
   INITIAL_SITE_SETTINGS,
   DEFAULT_ABOUT_CONTENT,
+  DEFAULT_HOMEPAGE_CONTENT,
+  DEFAULT_SHOP_CONTENT,
+  DEFAULT_LOOKBOOK_CONTENT,
+  DEFAULT_FOOTER_CONTENT,
 } from "@/lib/initial-data";
 
 export type SupabaseStatus = "connected" | "syncing" | "error";
@@ -71,6 +79,26 @@ interface StoreContextType {
   getAboutContent: () => AboutPageData;
   updateAboutContent: (updates: Partial<AboutPageData>) => Promise<boolean>;
   resetAboutContent: () => Promise<boolean>;
+
+  // Homepage CMS
+  getHomePageContent: () => HomePageData;
+  updateHomePageContent: (updates: Partial<HomePageData>) => Promise<boolean>;
+  resetHomePageContent: () => Promise<boolean>;
+
+  // Shop Page CMS
+  getShopContent: () => ShopPageData;
+  updateShopContent: (updates: Partial<ShopPageData>) => Promise<boolean>;
+  resetShopContent: () => Promise<boolean>;
+
+  // Lookbook Page CMS
+  getLookbookContent: () => LookbookPageData;
+  updateLookbookContent: (updates: Partial<LookbookPageData>) => Promise<boolean>;
+  resetLookbookContent: () => Promise<boolean>;
+
+  // Footer & Enclave CMS
+  getFooterContent: () => FooterPageData;
+  updateFooterContent: (updates: Partial<FooterPageData>) => Promise<boolean>;
+  resetFooterContent: () => Promise<boolean>;
 
   // Cart
   cart: CartItem[];
@@ -885,6 +913,190 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return success;
   };
 
+  // 1. Homepage CMS
+  const getHomePageContent = useCallback((): HomePageData => {
+    const slot = mediaSlots["HOMEPAGE_PAGE_DATA"];
+    if (slot?.subHeading) {
+      try {
+        const parsed = JSON.parse(slot.subHeading);
+        return { ...DEFAULT_HOMEPAGE_CONTENT, ...parsed };
+      } catch (e) {
+        console.warn("Could not parse HOMEPAGE_PAGE_DATA payload:", e);
+      }
+    }
+    return DEFAULT_HOMEPAGE_CONTENT;
+  }, [mediaSlots]);
+
+  const updateHomePageContent = async (updates: Partial<HomePageData>): Promise<boolean> => {
+    const current = getHomePageContent();
+    const merged = { ...current, ...updates };
+    const payload = JSON.stringify(merged);
+
+    const success = await updateMediaSlot("HOMEPAGE_PAGE_DATA", {
+      subHeading: payload,
+      heading: merged.heroHeading,
+      updatedAt: new Date().toISOString(),
+    });
+
+    // Keep related media slots in sync if their corresponding headings/tags change
+    if (updates.heroHeading || updates.heroTag || updates.heroPrimaryCtaText || updates.heroPrimaryCtaLink) {
+      updateMediaSlot("HERO_MAIN_BANNER", {
+        heading: merged.heroHeading,
+        subHeading: merged.heroTag,
+        ctaText: merged.heroPrimaryCtaText,
+        ctaLink: merged.heroPrimaryCtaLink,
+      }).catch(() => {});
+    }
+
+    if (updates.splitLeftHeading || updates.splitLeftDescription || updates.splitLeftCtaText || updates.splitLeftCtaLink) {
+      updateMediaSlot("SPLIT_BANNER_LEFT", {
+        heading: merged.splitLeftHeading,
+        subHeading: merged.splitLeftDescription,
+        ctaText: merged.splitLeftCtaText,
+        ctaLink: merged.splitLeftCtaLink,
+      }).catch(() => {});
+    }
+
+    if (updates.splitRightHeading || updates.splitRightDescription || updates.splitRightCtaText || updates.splitRightCtaLink) {
+      updateMediaSlot("SPLIT_BANNER_RIGHT", {
+        heading: merged.splitRightHeading,
+        subHeading: merged.splitRightDescription,
+        ctaText: merged.splitRightCtaText,
+        ctaLink: merged.splitRightCtaLink,
+      }).catch(() => {});
+    }
+
+    return success;
+  };
+
+  const resetHomePageContent = async (): Promise<boolean> => {
+    const success = await updateMediaSlot("HOMEPAGE_PAGE_DATA", {
+      subHeading: null,
+      heading: DEFAULT_HOMEPAGE_CONTENT.heroHeading,
+      updatedAt: new Date().toISOString(),
+    });
+
+    await updateMediaSlot("HERO_MAIN_BANNER", {
+      heading: DEFAULT_HOMEPAGE_CONTENT.heroHeading,
+      subHeading: DEFAULT_HOMEPAGE_CONTENT.heroTag,
+      ctaText: DEFAULT_HOMEPAGE_CONTENT.heroPrimaryCtaText,
+      ctaLink: DEFAULT_HOMEPAGE_CONTENT.heroPrimaryCtaLink,
+    }).catch(() => {});
+
+    return success;
+  };
+
+  // 2. Shop Page CMS
+  const getShopContent = useCallback((): ShopPageData => {
+    const slot = mediaSlots["SHOP_PAGE_DATA"];
+    if (slot?.subHeading) {
+      try {
+        const parsed = JSON.parse(slot.subHeading);
+        return { ...DEFAULT_SHOP_CONTENT, ...parsed };
+      } catch (e) {
+        console.warn("Could not parse SHOP_PAGE_DATA payload:", e);
+      }
+    }
+    return DEFAULT_SHOP_CONTENT;
+  }, [mediaSlots]);
+
+  const updateShopContent = async (updates: Partial<ShopPageData>): Promise<boolean> => {
+    const current = getShopContent();
+    const merged = { ...current, ...updates };
+    const payload = JSON.stringify(merged);
+
+    return await updateMediaSlot("SHOP_PAGE_DATA", {
+      subHeading: payload,
+      heading: merged.shopHeading,
+      updatedAt: new Date().toISOString(),
+    });
+  };
+
+  const resetShopContent = async (): Promise<boolean> => {
+    return await updateMediaSlot("SHOP_PAGE_DATA", {
+      subHeading: null,
+      heading: DEFAULT_SHOP_CONTENT.shopHeading,
+      updatedAt: new Date().toISOString(),
+    });
+  };
+
+  // 3. Lookbook Page CMS
+  const getLookbookContent = useCallback((): LookbookPageData => {
+    const slot = mediaSlots["LOOKBOOK_PAGE_DATA"];
+    if (slot?.subHeading) {
+      try {
+        const parsed = JSON.parse(slot.subHeading);
+        return { ...DEFAULT_LOOKBOOK_CONTENT, ...parsed };
+      } catch (e) {
+        console.warn("Could not parse LOOKBOOK_PAGE_DATA payload:", e);
+      }
+    }
+    return DEFAULT_LOOKBOOK_CONTENT;
+  }, [mediaSlots]);
+
+  const updateLookbookContent = async (updates: Partial<LookbookPageData>): Promise<boolean> => {
+    const current = getLookbookContent();
+    const merged = { ...current, ...updates };
+    const payload = JSON.stringify(merged);
+
+    const success = await updateMediaSlot("LOOKBOOK_PAGE_DATA", {
+      subHeading: payload,
+      heading: merged.lookbookHeading,
+      updatedAt: new Date().toISOString(),
+    });
+
+    if (updates.highlightHeading || updates.highlightDescription) {
+      updateMediaSlot("LOOKBOOK_HIGHLIGHT_BANNER", {
+        heading: merged.highlightHeading,
+        subHeading: merged.highlightDescription,
+      }).catch(() => {});
+    }
+
+    return success;
+  };
+
+  const resetLookbookContent = async (): Promise<boolean> => {
+    return await updateMediaSlot("LOOKBOOK_PAGE_DATA", {
+      subHeading: null,
+      heading: DEFAULT_LOOKBOOK_CONTENT.lookbookHeading,
+      updatedAt: new Date().toISOString(),
+    });
+  };
+
+  // 4. Footer & Enclave CMS
+  const getFooterContent = useCallback((): FooterPageData => {
+    const slot = mediaSlots["FOOTER_PAGE_DATA"];
+    if (slot?.subHeading) {
+      try {
+        const parsed = JSON.parse(slot.subHeading);
+        return { ...DEFAULT_FOOTER_CONTENT, ...parsed };
+      } catch (e) {
+        console.warn("Could not parse FOOTER_PAGE_DATA payload:", e);
+      }
+    }
+    return DEFAULT_FOOTER_CONTENT;
+  }, [mediaSlots]);
+
+  const updateFooterContent = async (updates: Partial<FooterPageData>): Promise<boolean> => {
+    const current = getFooterContent();
+    const merged = { ...current, ...updates };
+    const payload = JSON.stringify(merged);
+
+    return await updateMediaSlot("FOOTER_PAGE_DATA", {
+      subHeading: payload,
+      heading: merged.enclaveHeading,
+      updatedAt: new Date().toISOString(),
+    });
+  };
+
+  const resetFooterContent = async (): Promise<boolean> => {
+    return await updateMediaSlot("FOOTER_PAGE_DATA", {
+      subHeading: null,
+      heading: DEFAULT_FOOTER_CONTENT.enclaveHeading,
+      updatedAt: new Date().toISOString(),
+    });
+  };
+
   // Cart operations
   const addToCart = (item: CartItem) => {
     setCart((prev) => {
@@ -1033,6 +1245,18 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         getAboutContent,
         updateAboutContent,
         resetAboutContent,
+        getHomePageContent,
+        updateHomePageContent,
+        resetHomePageContent,
+        getShopContent,
+        updateShopContent,
+        resetShopContent,
+        getLookbookContent,
+        updateLookbookContent,
+        resetLookbookContent,
+        getFooterContent,
+        updateFooterContent,
+        resetFooterContent,
         cart,
         addToCart,
         removeFromCart,

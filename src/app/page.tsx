@@ -12,8 +12,10 @@ import { ArrowRight, ArrowUpRight, Compass, Sparkles, Play } from "lucide-react"
 import { getVideoInfo } from "@/lib/video-utils";
 
 export default function HomePage() {
-  const { products, collections, lookbookItems, getMediaSlot, addToCart } = useStore();
+  const { products, collections, lookbookItems, getMediaSlot, addToCart, getHomePageContent } = useStore();
   const [activeLookbookIdx, setActiveLookbookIdx] = useState(0);
+
+  const homeContent = getHomePageContent();
 
   const heroMainSlot = getMediaSlot("HERO_MAIN_BANNER");
   const heroMobileSlot = getMediaSlot("HERO_MOBILE_BANNER");
@@ -66,39 +68,39 @@ export default function HomePage() {
           <ScrollReveal direction="up" duration={850} className="max-w-3xl space-y-3 sm:space-y-4">
             <div className="flex items-center gap-2 font-mono text-[9px] sm:text-xs tracking-mega uppercase text-luga-gold">
               <Compass className="w-3.5 h-3.5 animate-spin" style={{ animationDuration: "12s" }} />
-              <span className="truncate">{heroMainSlot?.subHeading || "AUTUMN / WINTER 2026 // LIMITED ARTISANAL DROP"}</span>
+              <span className="truncate">{heroMainSlot?.subHeading || homeContent.heroTag}</span>
             </div>
 
             <h1 className="font-editorial text-3xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-light tracking-tight leading-[0.98] uppercase break-words">
-              {heroMainSlot?.heading || "VOLUME I: KATHMANDU ARCHIVE"}
+              {heroMainSlot?.heading || homeContent.heroHeading}
             </h1>
 
             <p className="font-mono text-xs sm:text-sm tracking-wider text-[#E0DDD8] max-w-xl leading-relaxed">
-              Centuries of Newari handloom heritage re-engineered into heavy 460–580 GSM brutalist streetwear silhouettes. Made in Nepal.
+              {homeContent.heroDescription}
             </p>
 
             <div className="pt-3 sm:pt-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
               <Link
-                href={heroMainSlot?.ctaLink || "/collections/volume-1"}
+                href={heroMainSlot?.ctaLink || homeContent.heroPrimaryCtaLink}
                 className="w-full sm:w-auto px-6 sm:px-8 py-3.5 sm:py-4 bg-white text-black font-mono text-xs uppercase tracking-ultra hover:bg-luga-gold hover:text-black transition-colors duration-300 flex items-center justify-center gap-3 text-center"
               >
-                <span>{heroMainSlot?.ctaText || "EXPLORE THE ARCHIVE"}</span>
+                <span>{heroMainSlot?.ctaText || homeContent.heroPrimaryCtaText}</span>
                 <ArrowRight className="w-4 h-4" />
               </Link>
               <Link
-                href="/lookbook"
+                href={homeContent.heroSecondaryCtaLink}
                 className="w-full sm:w-auto px-6 sm:px-8 py-3.5 sm:py-4 bg-black/40 backdrop-blur-md border border-white/40 text-white font-mono text-xs uppercase tracking-ultra hover:bg-white hover:text-black transition-colors duration-300 text-center"
               >
-                VIEW LOOKBOOK FILM
+                {homeContent.heroSecondaryCtaText}
               </Link>
             </div>
           </ScrollReveal>
 
           {/* Right Rail Info Stamp */}
           <ScrollReveal direction="up" delay={200} className="hidden lg:flex flex-col items-end text-right font-mono text-[10px] tracking-mega space-y-1 text-white/70">
-            <div>EST. KATHMANDU VALLEY</div>
-            <div>PATAN ATELIER // 27.6744° N</div>
-            <div className="text-luga-gold pt-2">COMPLIMENTARY DELIVERY ACROSS RING ROAD</div>
+            <div>{homeContent.heroStamp1}</div>
+            <div>{homeContent.heroStamp2}</div>
+            <div className="text-luga-gold pt-2">{homeContent.heroStamp3}</div>
           </ScrollReveal>
         </div>
       </section>
@@ -110,10 +112,10 @@ export default function HomePage() {
           <div>
             <span className="font-mono text-[10px] sm:text-xs tracking-mega uppercase text-luga-crimson dark:text-luga-gold flex items-center gap-2">
               <Sparkles className="w-3.5 h-3.5" />
-              CURATED SELECTIONS
+              {homeContent.featuredTag}
             </span>
             <h2 className="font-editorial text-3xl sm:text-5xl text-luga-ink dark:text-luga-darkInk uppercase tracking-tight mt-1">
-              FEATURED GARMENTS & DROPS
+              {homeContent.featuredHeading}
             </h2>
           </div>
 
@@ -121,7 +123,7 @@ export default function HomePage() {
             href="/shop"
             className="font-mono text-xs tracking-ultra uppercase text-luga-muted hover:text-luga-ink dark:text-luga-darkMuted dark:hover:text-luga-darkInk flex items-center gap-2 group"
           >
-            <span>VIEW ALL ({products.length})</span>
+            <span>{homeContent.featuredViewAllText} ({products.length})</span>
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </Link>
         </ScrollReveal>
@@ -156,21 +158,20 @@ export default function HomePage() {
 
               <div className="relative z-10 space-y-3 text-white max-w-md">
                 <span className="font-mono text-[10px] tracking-mega uppercase text-luga-gold">
-                  PATAN & BHAKTAPUR HERITAGE
+                  {homeContent.splitLeftTag}
                 </span>
                 <h3 className="font-editorial text-3xl sm:text-4xl uppercase tracking-tight">
-                  {splitLeftSlot?.heading || "ARTISANAL HANDLOOM"}
+                  {splitLeftSlot?.heading || homeContent.splitLeftHeading}
                 </h3>
                 <p className="font-mono text-xs text-[#E0DDD8] tracking-wider leading-relaxed">
-                  {splitLeftSlot?.subHeading ||
-                    "Spun on century-old wooden pit-looms in Lalitpur using organic unbleached Himalayan cotton and natural madder dyes."}
+                  {splitLeftSlot?.subHeading || homeContent.splitLeftDescription}
                 </p>
                 <div className="pt-2">
                   <Link
-                    href={splitLeftSlot?.ctaLink || "/about"}
+                    href={splitLeftSlot?.ctaLink || homeContent.splitLeftCtaLink}
                     className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-ultra text-white border-b border-white pb-1 hover:text-luga-gold hover:border-luga-gold transition-colors"
                   >
-                    <span>{splitLeftSlot?.ctaText || "VIEW CRAFTSMANSHIP"}</span>
+                    <span>{splitLeftSlot?.ctaText || homeContent.splitLeftCtaText}</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </Link>
                 </div>
@@ -195,21 +196,20 @@ export default function HomePage() {
 
               <div className="relative z-10 space-y-3 text-white max-w-md">
                 <span className="font-mono text-[10px] tracking-mega uppercase text-luga-gold">
-                  ARCHITECTURAL SILHOUETTES
+                  {homeContent.splitRightTag}
                 </span>
                 <h3 className="font-editorial text-3xl sm:text-4xl uppercase tracking-tight">
-                  {splitRightSlot?.heading || "HEAVYWEIGHT CUTS"}
+                  {splitRightSlot?.heading || homeContent.splitRightHeading}
                 </h3>
                 <p className="font-mono text-xs text-[#E0DDD8] tracking-wider leading-relaxed">
-                  {splitRightSlot?.subHeading ||
-                    "420–580 GSM custom-milled French terry, wool gabardine, and oversized boxy tailoring engineered to withstand time."}
+                  {splitRightSlot?.subHeading || homeContent.splitRightDescription}
                 </p>
                 <div className="pt-2">
                   <Link
-                    href={splitRightSlot?.ctaLink || "/shop?category=outerwear"}
+                    href={splitRightSlot?.ctaLink || homeContent.splitRightCtaLink}
                     className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-ultra text-white border-b border-white pb-1 hover:text-luga-gold hover:border-luga-gold transition-colors"
                   >
-                    <span>{splitRightSlot?.ctaText || "SHOP OUTERWEAR"}</span>
+                    <span>{splitRightSlot?.ctaText || homeContent.splitRightCtaText}</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </Link>
                 </div>
@@ -223,13 +223,13 @@ export default function HomePage() {
       <section className="max-w-[1920px] mx-auto px-4 sm:px-8 py-20 sm:py-28">
         <ScrollReveal direction="up" className="text-center max-w-2xl mx-auto mb-16 space-y-2">
           <span className="font-mono text-[10px] sm:text-xs tracking-mega uppercase text-luga-muted dark:text-luga-darkMuted">
-            NUMBERED ARCHIVES
+            {homeContent.volumesTag}
           </span>
           <h2 className="font-editorial text-3xl sm:text-5xl uppercase tracking-tight text-luga-ink dark:text-luga-darkInk">
-            EXPLORE BY VOLUME
+            {homeContent.volumesHeading}
           </h2>
           <p className="font-mono text-xs text-luga-muted dark:text-luga-darkMuted tracking-wider">
-            Each volume represents a distinct thematic dialogue between Kathmandu architectural history and modern garment engineering.
+            {homeContent.volumesDescription}
           </p>
         </ScrollReveal>
 
@@ -293,14 +293,14 @@ export default function HomePage() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30 pointer-events-none" />
                 <div className="absolute bottom-6 left-6 sm:bottom-10 sm:left-10 z-10 max-w-xl space-y-2 pointer-events-none">
                   <span className="font-mono text-[9px] sm:text-[10px] tracking-mega text-luga-gold uppercase">
-                    FEATURED 35MM CINEMATIC FILM REEL
+                    {homeContent.lookbookHighlightTag}
                   </span>
                   <h3 className="font-editorial text-2xl sm:text-4xl uppercase text-white">
-                    {lookbookHighlightSlot.heading || "VOLUME I: PATAN ARCHIVE FILM"}
+                    {lookbookHighlightSlot?.heading || homeContent.lookbookHighlightTitle}
                   </h3>
-                  {lookbookHighlightSlot.subHeading && (
+                  {(lookbookHighlightSlot?.subHeading || homeContent.lookbookHighlightSubtitle) && (
                     <p className="font-mono text-xs text-[#A3A09A]">
-                      {lookbookHighlightSlot.subHeading}
+                      {lookbookHighlightSlot?.subHeading || homeContent.lookbookHighlightSubtitle}
                     </p>
                   )}
                 </div>
@@ -311,10 +311,10 @@ export default function HomePage() {
           <ScrollReveal direction="up" className="flex flex-col md:flex-row md:items-end justify-between border-b border-white/10 pb-6 mb-12 gap-6">
             <div>
               <span className="font-mono text-[10px] tracking-mega uppercase text-luga-gold">
-                EDITORIAL SPREAD // 35MM ARCHIVE
+                {homeContent.lookbookTag}
               </span>
               <h2 className="font-editorial text-3xl sm:text-5xl uppercase tracking-tight text-white mt-1">
-                SHOP THE LOOKBOOK
+                {homeContent.lookbookHeading}
               </h2>
             </div>
 
@@ -429,7 +429,7 @@ export default function HomePage() {
                   href="/lookbook"
                   className="font-mono text-xs uppercase tracking-ultra text-white/80 hover:text-luga-gold transition-colors flex items-center gap-2"
                 >
-                  <span>BROWSE FULL 35MM LOOKBOOK ARCHIVE</span>
+                  <span>{homeContent.lookbookBrowseCtaText}</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
               </div>
@@ -443,26 +443,22 @@ export default function HomePage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           <ScrollReveal direction="up" duration={750} className="lg:col-span-6 space-y-6">
             <span className="font-mono text-[10px] sm:text-xs tracking-mega uppercase text-luga-crimson dark:text-luga-gold">
-              THE PATAN ATELIER MANIFESTO
+              {homeContent.storyTag}
             </span>
             <h2 className="font-editorial text-3xl sm:text-5xl text-luga-ink dark:text-luga-darkInk leading-tight uppercase">
-              Hand-woven in ancient Nepal. Tailored for brutalist contemporary living.
+              {homeContent.storyHeading}
             </h2>
             <div className="font-mono text-xs sm:text-sm text-luga-muted dark:text-luga-darkMuted space-y-4 leading-relaxed">
-              <p>
-                Founded in the historic stone lanes of Lalitpur (Patan), <strong>LUGA</strong> was born to challenge the Western monopoly on luxury streetwear. We fuse centuries-old Newari handloom traditions, Mustang yak-down fibers, and Palpali Dhaka weaves with modern heavyweight silhouettes.
-              </p>
-              <p>
-                Every garment is crafted inside our Kathmandu Valley workshop in small, unhurried volumes. We don&apos;t follow fast fashion seasons; each drop is an archival release engineered to last generations.
-              </p>
+              <p>{homeContent.storyParagraph1}</p>
+              <p>{homeContent.storyParagraph2}</p>
             </div>
 
             <div className="pt-4 flex items-center gap-6">
               <Link
-                href="/about"
+                href={homeContent.storyCtaLink}
                 className="px-8 py-4 bg-luga-ink text-white dark:bg-luga-darkInk dark:text-black font-mono text-xs uppercase tracking-ultra hover:bg-luga-crimson dark:hover:bg-luga-gold transition-colors"
               >
-                READ THE FULL MANIFESTO
+                {homeContent.storyCtaText}
               </Link>
             </div>
           </ScrollReveal>

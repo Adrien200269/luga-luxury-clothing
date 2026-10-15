@@ -15,7 +15,8 @@ function ShopContent() {
   const searchParams = useSearchParams();
   const initialCat = searchParams.get("category") as ProductCategory | null;
 
-  const { products, collections, getMediaSlot } = useStore();
+  const { products, collections, getMediaSlot, getShopContent } = useStore();
+  const shopContent = getShopContent();
 
   const [selectedCategory, setSelectedCategory] = useState<string>(initialCat || "all");
   const [selectedCollection, setSelectedCollection] = useState<string>("all");
@@ -92,15 +93,29 @@ function ShopContent() {
 
         <div className="relative z-10 text-center px-6 max-w-3xl text-white space-y-2">
           <span className="font-mono text-[10px] sm:text-xs tracking-mega uppercase text-luga-gold">
-            LUGA PERMANENT ARCHIVE
+            {bannerSlot?.subHeading || shopContent.shopTag}
           </span>
           <h1 className="font-editorial text-4xl sm:text-6xl uppercase tracking-tight font-light">
-            {selectedCategory !== "all"
-              ? `${selectedCategory.toUpperCase()} COLLECTION`
-              : "ALL READY-TO-WEAR"}
+            {selectedCategory === "outerwear"
+              ? shopContent.outerwearHeading
+              : selectedCategory === "knitwear"
+              ? shopContent.knitwearHeading
+              : selectedCategory === "shirts"
+              ? shopContent.shirtsHeading
+              : selectedCategory === "trousers"
+              ? shopContent.trousersHeading
+              : (bannerSlot?.heading || shopContent.shopHeading)}
           </h1>
           <p className="font-mono text-xs sm:text-sm text-[#DDD] tracking-wider max-w-xl mx-auto">
-            Heavyweight streetwear silhouettes tailored in Kathmandu with Newari artisan traditions.
+            {selectedCategory === "outerwear"
+              ? shopContent.outerwearDescription
+              : selectedCategory === "knitwear"
+              ? shopContent.knitwearDescription
+              : selectedCategory === "shirts"
+              ? shopContent.shirtsDescription
+              : selectedCategory === "trousers"
+              ? shopContent.trousersDescription
+              : shopContent.shopDescription}
           </p>
         </div>
       </section>

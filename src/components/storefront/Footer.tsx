@@ -6,7 +6,8 @@ import { useStore } from "@/lib/store-context";
 import { ArrowRight, Check } from "lucide-react";
 
 export const Footer: React.FC = () => {
-  const { settings } = useStore();
+  const { settings, getFooterContent } = useStore();
+  const footerContent = getFooterContent();
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
 
@@ -24,13 +25,13 @@ export const Footer: React.FC = () => {
       <div className="border-b border-white/10 py-12 sm:py-16 px-4 sm:px-12">
         <div className="max-w-4xl mx-auto text-center space-y-4">
           <span className="font-mono text-[10px] tracking-mega uppercase text-luga-gold">
-            LUGA ENCLAVE // PRIVATE ARCHIVE ACCESS
+            {footerContent.enclaveTag}
           </span>
           <h2 className="font-editorial text-2xl sm:text-4xl lg:text-5xl text-white font-light break-words">
-            Become a Patron of Contemporary Nepali Streetwear
+            {footerContent.enclaveHeading}
           </h2>
           <p className="text-xs sm:text-sm font-mono tracking-wider text-[#A3A09A] max-w-xl mx-auto leading-relaxed">
-            Gain priority invitations to capsule drops, bespoke Dhaka made-to-order garments, and private salon viewings in Patan.
+            {footerContent.enclaveDescription}
           </p>
 
           <form onSubmit={handleSubscribe} className="mt-6 sm:mt-8 max-w-md mx-auto flex flex-col sm:flex-row items-stretch gap-2 sm:gap-0">
@@ -70,10 +71,10 @@ export const Footer: React.FC = () => {
             LUGA
           </div>
           <p className="text-[#A3A09A] leading-relaxed text-[11px] tracking-wider">
-            Contemporary Nepali luxury streetwear fusing 17th-century Patan handloom artistry with heavy Japanese-grade brutalist garment architecture.
+            {footerContent.brandDescription}
           </p>
           <div className="text-[10px] text-luga-gold tracking-widest uppercase">
-            PATAN DURBAR CRAFT QUARTER // KATHMANDU VALLEY
+            {footerContent.craftQuarterLocation}
           </div>
         </div>
 
@@ -166,7 +167,7 @@ export const Footer: React.FC = () => {
       {/* Bottom Bar */}
       <div className="border-t border-white/10 py-6 px-4 sm:px-12 flex flex-col sm:flex-row items-center justify-between text-[10px] font-mono text-[#73706A] tracking-wider gap-4 text-center sm:text-left">
         <div>
-          © {new Date().getFullYear()} LUGA STUDIO KATHMANDU. ALL ARCHIVAL RIGHTS RESERVED.
+          © {new Date().getFullYear()} {footerContent.copyrightText}
         </div>
         <div className="flex flex-wrap items-center justify-center sm:justify-end gap-3 sm:gap-6 text-center sm:text-right">
           <span>CURRENCY: NPR (रू)</span>

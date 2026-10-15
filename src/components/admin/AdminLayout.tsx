@@ -8,6 +8,7 @@ import { LuxuryLoader } from "@/components/common/LuxuryLoader";
 import { useStore } from "@/lib/store-context";
 import {
   LayoutDashboard,
+  Home,
   Image as ImageIcon,
   Shirt,
   Layers,
@@ -62,10 +63,40 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({
       icon: LayoutDashboard,
     },
     {
-      label: "Global Site Media",
+      label: "Homepage CMS",
+      href: "/admin/home",
+      icon: Home,
+      badge: "PAGE",
+    },
+    {
+      label: "Shop & Catalog CMS",
+      href: "/admin/shop-page",
+      icon: ShoppingBag,
+      badge: "PAGE",
+    },
+    {
+      label: "About & Brand Story",
+      href: "/admin/about",
+      icon: Compass,
+      badge: "PAGE",
+    },
+    {
+      label: "Lookbook & Film CMS",
+      href: "/admin/lookbook",
+      icon: BookOpen,
+      badge: "PAGE",
+    },
+    {
+      label: "Footer & Enclave CMS",
+      href: "/admin/footer",
+      icon: Sparkles,
+      badge: "PAGE",
+    },
+    {
+      label: "Site Media Manager",
       href: "/admin/site-media",
       icon: ImageIcon,
-      badge: "CORE",
+      badge: "MEDIA",
     },
     {
       label: "Clothes & Products",
@@ -78,23 +109,13 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({
       icon: Layers,
     },
     {
-      label: "Lookbook Archive",
-      href: "/admin/lookbook",
-      icon: BookOpen,
-    },
-    {
-      label: "About & Brand Story",
-      href: "/admin/about",
-      icon: Compass,
-    },
-    {
       label: "Customer Orders",
       href: "/admin/orders",
       icon: ShoppingBag,
       badge: pendingOrdersCount > 0 ? `${pendingOrdersCount}` : undefined,
     },
     {
-      label: "Settings & Marquee",
+      label: "Settings & Logistics",
       href: "/admin/settings",
       icon: Settings,
     },

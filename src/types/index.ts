@@ -196,3 +196,88 @@ export interface AboutPageData {
   salonCtaText: string;
   salonCtaLink: string;
 }
+
+export interface HomePageData {
+  heroTag: string;
+  heroHeading: string;
+  heroDescription: string;
+  heroPrimaryCtaText: string;
+  heroPrimaryCtaLink: string;
+  heroSecondaryCtaText: string;
+  heroSecondaryCtaLink: string;
+  heroStamp1: string;
+  heroStamp2: string;
+  heroStamp3: string;
+
+  featuredTag: string;
+  featuredHeading: string;
+  featuredViewAllText: string;
+
+  splitLeftTag: string;
+  splitLeftHeading: string;
+  splitLeftDescription: string;
+  splitLeftCtaText: string;
+  splitLeftCtaLink: string;
+
+  splitRightTag: string;
+  splitRightHeading: string;
+  splitRightDescription: string;
+  splitRightCtaText: string;
+  splitRightCtaLink: string;
+
+  volumesTag: string;
+  volumesHeading: string;
+  volumesDescription: string;
+
+  lookbookTag: string;
+  lookbookHeading: string;
+  lookbookHighlightTag: string;
+  lookbookHighlightTitle: string;
+  lookbookHighlightSubtitle: string;
+  lookbookBrowseCtaText: string;
+
+  storyTag: string;
+  storyHeading: string;
+  storyParagraph1: string;
+  storyParagraph2: string;
+  storyCtaText: string;
+  storyCtaLink: string;
+}
+
+export interface ShopPageData {
+  shopTag: string;
+  shopHeading: string;
+  shopDescription: string;
+
+  outerwearHeading: string;
+  outerwearDescription: string;
+
+  knitwearHeading: string;
+  knitwearDescription: string;
+
+  shirtsHeading: string;
+  shirtsDescription: string;
+
+  trousersHeading: string;
+  trousersDescription: string;
+}
+
+export interface LookbookPageData {
+  lookbookTag: string;
+  lookbookHeading: string;
+  lookbookDescription: string;
+
+  highlightTag: string;
+  highlightHeading: string;
+  highlightDescription: string;
+}
+
+export interface FooterPageData {
+  enclaveTag: string;
+  enclaveHeading: string;
+  enclaveDescription: string;
+  brandDescription: string;
+  craftQuarterLocation: string;
+  copyrightText: string;
+}
+

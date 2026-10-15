@@ -6,6 +6,10 @@ import {
   SiteSettings,
   Order,
   AboutPageData,
+  HomePageData,
+  ShopPageData,
+  LookbookPageData,
+  FooterPageData,
 } from "@/types";
 
 export const INITIAL_SITE_SETTINGS: SiteSettings = {
@@ -228,6 +232,58 @@ export const INITIAL_MEDIA_SLOTS: Record<string, SiteMediaSlot> = {
     subHeading: null, // JSON payload stored here if customized
     updatedAt: new Date().toISOString(),
   },
+  HOMEPAGE_PAGE_DATA: {
+    id: "slot-homepage-page-data",
+    slotKey: "HOMEPAGE_PAGE_DATA",
+    label: "Homepage Editorial Copy & Sections CMS Data",
+    pageSection: "HOMEPAGE",
+    imageUrl: null,
+    altText: "LUGA Homepage CMS Payload",
+    aspectRatio: "16:9",
+    resolution: "CMS Payload",
+    heading: "VOLUME I: KATHMANDU ARCHIVE",
+    subHeading: null,
+    updatedAt: new Date().toISOString(),
+  },
+  SHOP_PAGE_DATA: {
+    id: "slot-shop-page-data",
+    slotKey: "SHOP_PAGE_DATA",
+    label: "Shop & Catalog Categories CMS Data",
+    pageSection: "CATEGORIES",
+    imageUrl: null,
+    altText: "LUGA Shop Catalog CMS Payload",
+    aspectRatio: "21:9",
+    resolution: "CMS Payload",
+    heading: "ALL READY-TO-WEAR",
+    subHeading: null,
+    updatedAt: new Date().toISOString(),
+  },
+  LOOKBOOK_PAGE_DATA: {
+    id: "slot-lookbook-page-data",
+    slotKey: "LOOKBOOK_PAGE_DATA",
+    label: "Lookbook Editorial Reel CMS Data",
+    pageSection: "BRAND_ASSETS",
+    imageUrl: null,
+    altText: "LUGA Lookbook CMS Payload",
+    aspectRatio: "21:9",
+    resolution: "CMS Payload",
+    heading: "LOOKBOOK ARCHIVE",
+    subHeading: null,
+    updatedAt: new Date().toISOString(),
+  },
+  FOOTER_PAGE_DATA: {
+    id: "slot-footer-page-data",
+    slotKey: "FOOTER_PAGE_DATA",
+    label: "Global Footer & Enclave Patron CMS Data",
+    pageSection: "BRAND_ASSETS",
+    imageUrl: null,
+    altText: "LUGA Footer & Enclave CMS Payload",
+    aspectRatio: "16:9",
+    resolution: "CMS Payload",
+    heading: "LUGA ENCLAVE",
+    subHeading: null,
+    updatedAt: new Date().toISOString(),
+  },
 };
 
 export const DEFAULT_ABOUT_CONTENT: AboutPageData = {
@@ -268,6 +324,102 @@ export const DEFAULT_ABOUT_CONTENT: AboutPageData = {
     "Experience the raw tactile weight of hand-spun yak fibers, try on structured silhouettes, and consult with our atelier tailors in Lalitpur.",
   salonCtaText: "EXPLORE READY-TO-WEAR ARCHIVE",
   salonCtaLink: "/shop",
+};
+
+export const DEFAULT_HOMEPAGE_CONTENT: HomePageData = {
+  heroTag: "AUTUMN / WINTER 2026 // LIMITED ARTISANAL DROP",
+  heroHeading: "VOLUME I: KATHMANDU ARCHIVE",
+  heroDescription:
+    "Centuries of Newari handloom heritage re-engineered into heavy 460–580 GSM brutalist streetwear silhouettes. Made in Nepal.",
+  heroPrimaryCtaText: "EXPLORE THE ARCHIVE",
+  heroPrimaryCtaLink: "/collections/volume-1",
+  heroSecondaryCtaText: "VIEW LOOKBOOK FILM",
+  heroSecondaryCtaLink: "/lookbook",
+  heroStamp1: "EST. KATHMANDU VALLEY",
+  heroStamp2: "PATAN ATELIER // 27.6744° N",
+  heroStamp3: "COMPLIMENTARY DELIVERY ACROSS RING ROAD",
+
+  featuredTag: "CURATED SELECTIONS",
+  featuredHeading: "FEATURED GARMENTS & DROPS",
+  featuredViewAllText: "VIEW ALL",
+
+  splitLeftTag: "PATAN & BHAKTAPUR HERITAGE",
+  splitLeftHeading: "ARTISANAL HANDLOOM",
+  splitLeftDescription:
+    "Spun on century-old wooden pit-looms in Lalitpur using organic unbleached Himalayan cotton and natural madder dyes.",
+  splitLeftCtaText: "VIEW CRAFTSMANSHIP",
+  splitLeftCtaLink: "/about",
+
+  splitRightTag: "ARCHITECTURAL SILHOUETTES",
+  splitRightHeading: "HEAVYWEIGHT CUTS",
+  splitRightDescription:
+    "420–580 GSM custom-milled French terry, wool gabardine, and oversized boxy tailoring engineered to withstand time.",
+  splitRightCtaText: "SHOP OUTERWEAR",
+  splitRightCtaLink: "/shop?category=outerwear",
+
+  volumesTag: "NUMBERED ARCHIVES",
+  volumesHeading: "EXPLORE BY VOLUME",
+  volumesDescription:
+    "Each volume represents a distinct thematic dialogue between Kathmandu architectural history and modern garment engineering.",
+
+  lookbookTag: "EDITORIAL SPREAD // 35MM ARCHIVE",
+  lookbookHeading: "SHOP THE LOOKBOOK",
+  lookbookHighlightTag: "FEATURED 35MM CINEMATIC FILM REEL",
+  lookbookHighlightTitle: "VOLUME I: PATAN ARCHIVE FILM",
+  lookbookHighlightSubtitle:
+    "Captured on 35mm motion picture stock along Patan Durbar square alleys.",
+  lookbookBrowseCtaText: "BROWSE FULL 35MM LOOKBOOK ARCHIVE",
+
+  storyTag: "THE PATAN ATELIER MANIFESTO",
+  storyHeading:
+    "Hand-woven in ancient Nepal. Tailored for brutalist contemporary living.",
+  storyParagraph1:
+    "Founded in the historic stone lanes of Lalitpur (Patan), LUGA was born to challenge the Western monopoly on luxury streetwear. We fuse centuries-old Newari handloom traditions, Mustang yak-down fibers, and Palpali Dhaka weaves with modern heavyweight silhouettes.",
+  storyParagraph2:
+    "Every garment is crafted inside our Kathmandu Valley workshop in small, unhurried volumes. We don't follow fast fashion seasons; each drop is an archival release engineered to last generations.",
+  storyCtaText: "READ THE FULL MANIFESTO",
+  storyCtaLink: "/about",
+};
+
+export const DEFAULT_SHOP_CONTENT: ShopPageData = {
+  shopTag: "LUGA PERMANENT ARCHIVE",
+  shopHeading: "ALL READY-TO-WEAR",
+  shopDescription:
+    "Heavyweight streetwear silhouettes tailored in Kathmandu with Newari artisan traditions.",
+  outerwearHeading: "OUTERWEAR COLLECTION",
+  outerwearDescription:
+    "Heavyweight boxy coats, technical vests, and structured trench silhouettes engineered for high altitudes.",
+  knitwearHeading: "KNITWEAR COLLECTION",
+  knitwearDescription:
+    "Spun from virgin yak wool and fine Himalayan merino on heritage wooden looms.",
+  shirtsHeading: "SHIRTS & OVERSHIRTS",
+  shirtsDescription:
+    "Raw Nepalese handloom cotton overshirts tailored with brutalist oversized cuts.",
+  trousersHeading: "TROUSERS & CARGOS",
+  trousersDescription:
+    "Architectural pleats and reinforced heavyweight twill designed for permanent rotation.",
+};
+
+export const DEFAULT_LOOKBOOK_CONTENT: LookbookPageData = {
+  lookbookTag: "EDITORIAL 35MM ARCHIVE",
+  lookbookHeading: "LOOKBOOK ARCHIVE",
+  lookbookDescription:
+    "Captured on vintage analog film across the brick alleys of Patan, the bustle of Asan Tole, and temple spires of the Kathmandu Valley.",
+  highlightTag: "FEATURED 35MM CINEMATIC FILM REEL",
+  highlightHeading: "VOLUME I: PATAN ARCHIVE FILM",
+  highlightDescription:
+    "Direction by LUGA Atelier. Motion picture 35mm stock.",
+};
+
+export const DEFAULT_FOOTER_CONTENT: FooterPageData = {
+  enclaveTag: "LUGA ENCLAVE // PRIVATE ARCHIVE ACCESS",
+  enclaveHeading: "Become a Patron of Contemporary Nepali Streetwear",
+  enclaveDescription:
+    "Gain priority invitations to capsule drops, bespoke Dhaka made-to-order garments, and private salon viewings in Patan.",
+  brandDescription:
+    "Contemporary Nepali luxury streetwear fusing 17th-century Patan handloom artistry with heavy Japanese-grade brutalist garment architecture.",
+  craftQuarterLocation: "PATAN DURBAR CRAFT QUARTER // KATHMANDU VALLEY",
+  copyrightText: "LUGA STUDIO KATHMANDU. ALL ARCHIVAL RIGHTS RESERVED.",
 };
 
 export const INITIAL_COLLECTIONS: Collection[] = [

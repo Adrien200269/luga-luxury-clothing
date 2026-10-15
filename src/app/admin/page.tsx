@@ -16,6 +16,9 @@ import {
   Eye,
   CheckCircle2,
   Compass,
+  Home,
+  BookOpen,
+  Sparkles,
 } from "lucide-react";
 
 export default function AdminDashboardPage() {
@@ -134,7 +137,159 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        {/* Global Website Media Slot Banner Callout */}
+        {/* Storefront Page CMS Control Rooms */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between border-b border-luga-border dark:border-luga-darkBorder pb-2">
+            <div>
+              <span className="font-mono text-[10px] uppercase tracking-mega text-luga-crimson dark:text-luga-gold">
+                STOREFRONT CONTROL ROOMS
+              </span>
+              <h2 className="font-editorial text-2xl uppercase tracking-tight text-luga-ink dark:text-luga-darkInk">
+                PAGE-BY-PAGE EDITORIAL CMS
+              </h2>
+            </div>
+            <span className="font-mono text-xs text-luga-muted dark:text-luga-darkMuted hidden sm:inline">
+              ALL PAGES ARE LIVE & EDITABLE
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 font-mono text-xs">
+            {/* 1. Home */}
+            <Link
+              href="/admin/home"
+              className="p-5 bg-luga-bg dark:bg-[#0F0F0F] border border-luga-border dark:border-luga-darkBorder hover:border-luga-ink dark:hover:border-luga-darkInk transition-all duration-200 group flex flex-col justify-between space-y-4"
+            >
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="p-2 bg-luga-crimson/10 dark:bg-luga-gold/10 text-luga-crimson dark:text-luga-gold">
+                    <Home className="w-4 h-4" />
+                  </div>
+                  <span className="text-[9px] uppercase px-1.5 py-0.5 bg-luga-surface dark:bg-luga-darkSurface text-luga-muted">
+                    ROUTE /
+                  </span>
+                </div>
+                <h3 className="font-editorial text-lg text-luga-ink dark:text-luga-darkInk uppercase">
+                  Homepage CMS
+                </h3>
+                <p className="text-[10px] text-luga-muted dark:text-luga-darkMuted leading-relaxed">
+                  Hero campaign film, split editorial frames, volume intros, and atelier story.
+                </p>
+              </div>
+              <div className="flex items-center justify-between text-[10px] text-luga-crimson dark:text-luga-gold font-bold uppercase tracking-wider pt-2 border-t border-luga-border/30">
+                <span>EDIT HOME</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </Link>
+
+            {/* 2. Shop */}
+            <Link
+              href="/admin/shop-page"
+              className="p-5 bg-luga-bg dark:bg-[#0F0F0F] border border-luga-border dark:border-luga-darkBorder hover:border-luga-ink dark:hover:border-luga-darkInk transition-all duration-200 group flex flex-col justify-between space-y-4"
+            >
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="p-2 bg-luga-crimson/10 dark:bg-luga-gold/10 text-luga-crimson dark:text-luga-gold">
+                    <ShoppingBag className="w-4 h-4" />
+                  </div>
+                  <span className="text-[9px] uppercase px-1.5 py-0.5 bg-luga-surface dark:bg-luga-darkSurface text-luga-muted">
+                    ROUTE /shop
+                  </span>
+                </div>
+                <h3 className="font-editorial text-lg text-luga-ink dark:text-luga-darkInk uppercase">
+                  Shop Archive CMS
+                </h3>
+                <p className="text-[10px] text-luga-muted dark:text-luga-darkMuted leading-relaxed">
+                  Catalog headers, category descriptions, and bespoke hero media for Outerwear, Knitwear & more.
+                </p>
+              </div>
+              <div className="flex items-center justify-between text-[10px] text-luga-crimson dark:text-luga-gold font-bold uppercase tracking-wider pt-2 border-t border-luga-border/30">
+                <span>EDIT SHOP</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </Link>
+
+            {/* 3. About */}
+            <Link
+              href="/admin/about"
+              className="p-5 bg-luga-bg dark:bg-[#0F0F0F] border border-luga-border dark:border-luga-darkBorder hover:border-luga-ink dark:hover:border-luga-darkInk transition-all duration-200 group flex flex-col justify-between space-y-4"
+            >
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="p-2 bg-luga-crimson/10 dark:bg-luga-gold/10 text-luga-crimson dark:text-luga-gold">
+                    <Compass className="w-4 h-4" />
+                  </div>
+                  <span className="text-[9px] uppercase px-1.5 py-0.5 bg-luga-surface dark:bg-luga-darkSurface text-luga-muted">
+                    ROUTE /about
+                  </span>
+                </div>
+                <h3 className="font-editorial text-lg text-luga-ink dark:text-luga-darkInk uppercase">
+                  About & Story CMS
+                </h3>
+                <p className="text-[10px] text-luga-muted dark:text-luga-darkMuted leading-relaxed">
+                  Valley manifesto, 3 technical discipline pillars, and Patan Salon visiting details.
+                </p>
+              </div>
+              <div className="flex items-center justify-between text-[10px] text-luga-crimson dark:text-luga-gold font-bold uppercase tracking-wider pt-2 border-t border-luga-border/30">
+                <span>EDIT ABOUT</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </Link>
+
+            {/* 4. Lookbook */}
+            <Link
+              href="/admin/lookbook"
+              className="p-5 bg-luga-bg dark:bg-[#0F0F0F] border border-luga-border dark:border-luga-darkBorder hover:border-luga-ink dark:hover:border-luga-darkInk transition-all duration-200 group flex flex-col justify-between space-y-4"
+            >
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="p-2 bg-luga-crimson/10 dark:bg-luga-gold/10 text-luga-crimson dark:text-luga-gold">
+                    <BookOpen className="w-4 h-4" />
+                  </div>
+                  <span className="text-[9px] uppercase px-1.5 py-0.5 bg-luga-surface dark:bg-luga-darkSurface text-luga-muted">
+                    ROUTE /lookbook
+                  </span>
+                </div>
+                <h3 className="font-editorial text-lg text-luga-ink dark:text-luga-darkInk uppercase">
+                  Lookbook & Film
+                </h3>
+                <p className="text-[10px] text-luga-muted dark:text-luga-darkMuted leading-relaxed">
+                  35mm cinematic film reels, editorial headers, and analog frame shop-the-look tags.
+                </p>
+              </div>
+              <div className="flex items-center justify-between text-[10px] text-luga-crimson dark:text-luga-gold font-bold uppercase tracking-wider pt-2 border-t border-luga-border/30">
+                <span>EDIT LOOKBOOK</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </Link>
+
+            {/* 5. Footer */}
+            <Link
+              href="/admin/footer"
+              className="p-5 bg-luga-bg dark:bg-[#0F0F0F] border border-luga-border dark:border-luga-darkBorder hover:border-luga-ink dark:hover:border-luga-darkInk transition-all duration-200 group flex flex-col justify-between space-y-4"
+            >
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="p-2 bg-luga-crimson/10 dark:bg-luga-gold/10 text-luga-crimson dark:text-luga-gold">
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                  <span className="text-[9px] uppercase px-1.5 py-0.5 bg-luga-surface dark:bg-luga-darkSurface text-luga-muted">
+                    ALL PAGES
+                  </span>
+                </div>
+                <h3 className="font-editorial text-lg text-luga-ink dark:text-luga-darkInk uppercase">
+                  Footer & Enclave
+                </h3>
+                <p className="text-[10px] text-luga-muted dark:text-luga-darkMuted leading-relaxed">
+                  Patron VIP newsletter invitations, craft quarter coordinates, and universal statements.
+                </p>
+              </div>
+              <div className="flex items-center justify-between text-[10px] text-luga-crimson dark:text-luga-gold font-bold uppercase tracking-wider pt-2 border-t border-luga-border/30">
+                <span>EDIT FOOTER</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </Link>
+          </div>
+        </div>
         <div className="p-6 sm:p-8 bg-luga-bg dark:bg-[#0F0F0F] border border-luga-border dark:border-luga-darkBorder flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2 max-w-2xl">
             <div className="flex items-center gap-2 font-mono text-[10px] tracking-mega text-luga-crimson dark:text-luga-gold uppercase">

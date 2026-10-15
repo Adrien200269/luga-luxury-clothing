@@ -10,9 +10,10 @@ import { formatNpr } from "@/lib/utils";
 import { ShoppingBag, ArrowRight } from "lucide-react";
 
 export default function LookbookPage() {
-  const { lookbookItems, products, addToCart, getMediaSlot } = useStore();
+  const { lookbookItems, products, addToCart, getMediaSlot, getLookbookContent } = useStore();
   const [selectedVolume, setSelectedVolume] = useState<string>("ALL");
   const highlightSlot = getMediaSlot("LOOKBOOK_HIGHLIGHT_BANNER");
+  const lookbookContent = getLookbookContent();
 
   const volumes = ["ALL", "VOLUME I: KATHMANDU ARCHIVE"];
 
@@ -27,13 +28,13 @@ export default function LookbookPage() {
       <section className="border-b border-luga-border dark:border-luga-darkBorder py-12 sm:py-24 px-4 sm:px-6 text-center bg-luga-surface/40 dark:bg-luga-darkSurface/40">
         <div className="max-w-4xl mx-auto space-y-3">
           <span className="font-mono text-[10px] sm:text-xs tracking-mega uppercase text-luga-crimson dark:text-luga-gold">
-            EDITORIAL 35MM ARCHIVE
+            {lookbookContent.lookbookTag}
           </span>
           <h1 className="font-editorial text-3xl sm:text-6xl uppercase tracking-tight text-luga-ink dark:text-luga-darkInk font-light break-words">
-            LOOKBOOK ARCHIVE
+            {lookbookContent.lookbookHeading}
           </h1>
           <p className="font-mono text-xs sm:text-sm text-luga-muted dark:text-luga-darkMuted max-w-xl mx-auto leading-relaxed">
-            Captured on vintage analog film across the brick alleys of Patan, the bustle of Asan Tole, and temple spires of the Kathmandu Valley.
+            {lookbookContent.lookbookDescription}
           </p>
 
           {/* Volume Filter Tabs */}
@@ -71,14 +72,14 @@ export default function LookbookPage() {
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30 pointer-events-none" />
             <div className="absolute bottom-6 left-6 sm:bottom-12 sm:left-12 z-10 max-w-xl space-y-2 pointer-events-none text-white">
               <span className="font-mono text-[9px] sm:text-[10px] tracking-mega text-luga-gold uppercase">
-                FEATURED 35MM CINEMATIC FILM REEL
+                {lookbookContent.highlightTag}
               </span>
               <h2 className="font-editorial text-2xl sm:text-4xl uppercase tracking-tight">
-                {highlightSlot.heading || "VOLUME I: PATAN ARCHIVE FILM"}
+                {highlightSlot?.heading || lookbookContent.highlightHeading}
               </h2>
-              {highlightSlot.subHeading && (
+              {(highlightSlot?.subHeading || lookbookContent.highlightDescription) && (
                 <p className="font-mono text-xs text-[#A3A09A]">
-                  {highlightSlot.subHeading}
+                  {highlightSlot?.subHeading || lookbookContent.highlightDescription}
                 </p>
               )}
             </div>
