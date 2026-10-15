@@ -83,6 +83,11 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({
       icon: BookOpen,
     },
     {
+      label: "About & Brand Story",
+      href: "/admin/about",
+      icon: Compass,
+    },
+    {
       label: "Customer Orders",
       href: "/admin/orders",
       icon: ShoppingBag,

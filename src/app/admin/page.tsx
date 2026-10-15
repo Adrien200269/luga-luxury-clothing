@@ -15,6 +15,7 @@ import {
   Plus,
   Eye,
   CheckCircle2,
+  Compass,
 } from "lucide-react";
 
 export default function AdminDashboardPage() {
@@ -50,6 +51,13 @@ export default function AdminDashboardPage() {
           </div>
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 font-mono text-xs w-full sm:w-auto">
+            <Link
+              href="/admin/about"
+              className="px-4 py-2.5 border border-luga-border hover:border-luga-ink text-luga-ink dark:text-luga-darkInk uppercase tracking-ultra flex items-center justify-center gap-2 transition-colors text-center"
+            >
+              <Compass className="w-4 h-4 shrink-0 text-luga-crimson dark:text-luga-gold" />
+              <span>ABOUT STORY CMS</span>
+            </Link>
             <Link
               href="/admin/site-media"
               className="px-4 py-2.5 bg-luga-crimson text-white dark:bg-luga-gold dark:text-black uppercase tracking-ultra flex items-center justify-center gap-2 hover:opacity-90 transition-opacity text-center"

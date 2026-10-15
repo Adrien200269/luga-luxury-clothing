@@ -44,10 +44,10 @@ export interface SiteMediaSlot {
   altText: string | null;
   aspectRatio: string; // e.g. "16:9", "4:5", "1:1", "21:9"
   resolution: string; // e.g. "1920x1080px", "1200x1500px"
-  heading?: string;
-  subHeading?: string;
-  ctaText?: string;
-  ctaLink?: string;
+  heading?: string | null;
+  subHeading?: string | null;
+  ctaText?: string | null;
+  ctaLink?: string | null;
   updatedAt: string;
 }
 
@@ -160,4 +160,39 @@ export interface SiteSettings {
   instagramHandle: string;
   studioAddress: string;
   fonepayQrImageUrl: string | null;
+}
+
+export interface AboutPillar {
+  badge: string;
+  title: string;
+  description: string;
+}
+
+export interface AboutPageData {
+  manifestoTag: string;
+  manifestoHeading: string;
+  manifestoSubHeading: string;
+
+  narrativeTag: string;
+  narrativeHeading: string;
+  narrativeParagraph1: string;
+  narrativeParagraph2: string;
+  narrativeParagraph3: string;
+
+  pillarsTag: string;
+  pillarsHeading: string;
+  pillar1Badge: string;
+  pillar1Title: string;
+  pillar1Description: string;
+  pillar2Badge: string;
+  pillar2Title: string;
+  pillar2Description: string;
+  pillar3Badge: string;
+  pillar3Title: string;
+  pillar3Description: string;
+
+  salonHeading: string;
+  salonDescription: string;
+  salonCtaText: string;
+  salonCtaLink: string;
 }

@@ -5,6 +5,7 @@ import {
   SiteMediaSlot,
   SiteSettings,
   Order,
+  AboutPageData,
 } from "@/types";
 
 export const INITIAL_SITE_SETTINGS: SiteSettings = {
@@ -214,6 +215,59 @@ export const INITIAL_MEDIA_SLOTS: Record<string, SiteMediaSlot> = {
     subHeading: "Scan via eSewa, Khalti, or Any Nepal Mobile Banking App",
     updatedAt: new Date().toISOString(),
   },
+  ABOUT_PAGE_DATA: {
+    id: "slot-about-page-data",
+    slotKey: "ABOUT_PAGE_DATA",
+    label: "About Page Narrative, Pillars & Salon CMS Data",
+    pageSection: "ABOUT",
+    imageUrl: null,
+    altText: "LUGA About Story CMS Payload",
+    aspectRatio: "16:9",
+    resolution: "CMS Payload",
+    heading: "THE VALLEY MANIFESTO",
+    subHeading: null, // JSON payload stored here if customized
+    updatedAt: new Date().toISOString(),
+  },
+};
+
+export const DEFAULT_ABOUT_CONTENT: AboutPageData = {
+  manifestoTag: "KATHMANDU VALLEY // ESTABLISHED 2026",
+  manifestoHeading: "THE VALLEY MANIFESTO",
+  manifestoSubHeading:
+    "Reinterpreting sacred Newar architecture and centuries-old pit-loom handcraft through the rebellious lens of luxury brutalist streetwear.",
+
+  narrativeTag: "ORIGINS & ETHOS",
+  narrativeHeading: "Why We Build in Nepal",
+  narrativeParagraph1:
+    "For decades, global luxury fashion has looked toward Paris, Milan, and Tokyo for creative authority, while extracting raw cashmere, pashmina, and handloom cotton from South Asia under silent private labels.",
+  narrativeParagraph2:
+    "LUGA (लुगा) was born to subvert that hierarchy. Based in the ancient Newar artisan quarter of Patan (Lalitpur), we engineer contemporary streetwear that is entirely conceived, woven, tailored, and finished within Nepal. We do not celebrate shallow nostalgia; instead, we treat our cultural heritage as a living, evolving architectural framework.",
+  narrativeParagraph3:
+    "Our garments pair heavy 420–580 GSM organic cotton terry and raw Himalayan hemp with intricate Dhaka brocades and boiled Mustang yak fibers. Each piece takes days of meticulous hand manipulation on century-old wooden shuttle looms.",
+
+  pillarsTag: "TECHNICAL DISCIPLINE",
+  pillarsHeading: "THE THREE LUGA PILLARS",
+
+  pillar1Badge: "01 // HEAVYWEIGHT ARCHITECTURE",
+  pillar1Title: "420–580 GSM Custom Milling",
+  pillar1Description:
+    "We never use flimsy commodity blanks. All jerseys, terries, and twills are custom knit or loom-woven specifically for our dropped-shoulder, brutalist drape.",
+
+  pillar2Badge: "02 // INDIGENOUS FIBERS",
+  pillar2Title: "Mustang Yak & Handloom Dhaka",
+  pillar2Description:
+    "Combed high-altitude yak down, wild Himalayan hemp, and geometric Palpali Dhaka panels woven by multigenerational master weavers across Lalitpur and Bhaktapur.",
+
+  pillar3Badge: "03 // SLOW NUMBERED ARCHIVES",
+  pillar3Title: "Zero Waste & Unhurried Drops",
+  pillar3Description:
+    "We release garments in numbered volumes of no more than 30–50 pieces per silhouette. Leftover textile selvages are repurposed into interior garment trims.",
+
+  salonHeading: "Visit the Patan Salon",
+  salonDescription:
+    "Experience the raw tactile weight of hand-spun yak fibers, try on structured silhouettes, and consult with our atelier tailors in Lalitpur.",
+  salonCtaText: "EXPLORE READY-TO-WEAR ARCHIVE",
+  salonCtaLink: "/shop",
 };
 
 export const INITIAL_COLLECTIONS: Collection[] = [

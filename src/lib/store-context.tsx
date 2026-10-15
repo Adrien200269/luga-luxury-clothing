@@ -12,6 +12,7 @@ import {
   SiteMediaSlot,
   SiteSettings,
   AdminUser,
+  AboutPageData,
 } from "@/types";
 import {
   INITIAL_COLLECTIONS,
@@ -20,6 +21,7 @@ import {
   INITIAL_PRODUCTS,
   INITIAL_SAMPLE_ORDERS,
   INITIAL_SITE_SETTINGS,
+  DEFAULT_ABOUT_CONTENT,
 } from "@/lib/initial-data";
 
 export type SupabaseStatus = "connected" | "syncing" | "error";
@@ -64,6 +66,11 @@ interface StoreContextType {
   // Settings
   settings: SiteSettings;
   updateSettings: (updates: Partial<SiteSettings>) => Promise<boolean>;
+
+  // About Page CMS
+  getAboutContent: () => AboutPageData;
+  updateAboutContent: (updates: Partial<AboutPageData>) => Promise<boolean>;
+  resetAboutContent: () => Promise<boolean>;
 
   // Cart
   cart: CartItem[];
@@ -828,6 +835,56 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
+  // About Page CMS methods
+  const getAboutContent = useCallback((): AboutPageData => {
+    const slot = mediaSlots["ABOUT_PAGE_DATA"];
+    if (slot?.subHeading) {
+      try {
+        const parsed = JSON.parse(slot.subHeading);
+        return { ...DEFAULT_ABOUT_CONTENT, ...parsed };
+      } catch (e) {
+        console.warn("Could not parse ABOUT_PAGE_DATA payload:", e);
+      }
+    }
+    return DEFAULT_ABOUT_CONTENT;
+  }, [mediaSlots]);
+
+  const updateAboutContent = async (updates: Partial<AboutPageData>): Promise<boolean> => {
+    const current = getAboutContent();
+    const merged = { ...current, ...updates };
+    const payload = JSON.stringify(merged);
+
+    const success = await updateMediaSlot("ABOUT_PAGE_DATA", {
+      subHeading: payload,
+      heading: merged.manifestoHeading,
+      updatedAt: new Date().toISOString(),
+    });
+
+    if (updates.manifestoHeading || updates.manifestoSubHeading) {
+      updateMediaSlot("HERITAGE_STORY_BANNER", {
+        heading: merged.manifestoHeading,
+        subHeading: merged.manifestoSubHeading,
+      }).catch(() => {});
+    }
+
+    return success;
+  };
+
+  const resetAboutContent = async (): Promise<boolean> => {
+    const success = await updateMediaSlot("ABOUT_PAGE_DATA", {
+      subHeading: null,
+      heading: DEFAULT_ABOUT_CONTENT.manifestoHeading,
+      updatedAt: new Date().toISOString(),
+    });
+
+    await updateMediaSlot("HERITAGE_STORY_BANNER", {
+      heading: DEFAULT_ABOUT_CONTENT.manifestoHeading,
+      subHeading: DEFAULT_ABOUT_CONTENT.manifestoSubHeading,
+    });
+
+    return success;
+  };
+
   // Cart operations
   const addToCart = (item: CartItem) => {
     setCart((prev) => {
@@ -973,6 +1030,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         updateOrderStatus,
         settings,
         updateSettings,
+        getAboutContent,
+        updateAboutContent,
+        resetAboutContent,
         cart,
         addToCart,
         removeFromCart,
