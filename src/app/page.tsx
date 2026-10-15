@@ -8,7 +8,8 @@ import { ProductCard } from "@/components/storefront/ProductCard";
 import { ScrollReveal } from "@/components/common/ScrollReveal";
 import { useStore } from "@/lib/store-context";
 import { formatNpr } from "@/lib/utils";
-import { ArrowRight, ArrowUpRight, Compass, Sparkles } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Compass, Sparkles, Play } from "lucide-react";
+import { getVideoInfo } from "@/lib/video-utils";
 
 export default function HomePage() {
   const { products, collections, lookbookItems, getMediaSlot, addToCart } = useStore();
@@ -248,6 +249,12 @@ export default function HomePage() {
                     alt={col.title}
                     imageClassName="transition-transform duration-700 group-hover:scale-105"
                   />
+                  {getVideoInfo(col.coverImageUrl || (col.coverSlotKey ? getMediaSlot(col.coverSlotKey)?.imageUrl : undefined)).isVideo && (
+                    <div className="absolute top-3 left-3 z-10 px-2 py-0.5 bg-black/80 backdrop-blur-sm border border-white/20 text-white font-mono text-[9px] uppercase tracking-wider flex items-center gap-1 shadow-sm">
+                      <Play className="w-2.5 h-2.5 text-luga-gold fill-luga-gold" />
+                      <span>FILM REEL</span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="p-6 space-y-2">

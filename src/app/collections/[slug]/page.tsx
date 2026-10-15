@@ -8,7 +8,8 @@ import { ProductCard } from "@/components/storefront/ProductCard";
 import { ManagedImage } from "@/components/common/ManagedImage";
 import { ScrollReveal } from "@/components/common/ScrollReveal";
 import { useStore } from "@/lib/store-context";
-import { ArrowLeft, Compass } from "lucide-react";
+import { ArrowLeft, Compass, Play } from "lucide-react";
+import { getVideoInfo } from "@/lib/video-utils";
 
 export default function CollectionDetailPage() {
   const params = useParams();
@@ -42,13 +43,16 @@ export default function CollectionDetailPage() {
     (p) => p.collectionId === collection.id && !p.isArchived
   );
 
+  const resolvedMedia = collection.coverImageUrl || (collection.coverSlotKey ? getMediaSlot(collection.coverSlotKey)?.imageUrl : undefined);
+  const videoInfo = getVideoInfo(resolvedMedia);
+
   return (
     <StorefrontLayout>
       {/* Editorial Volume Header */}
       <section className="relative w-full min-h-[50vh] sm:min-h-[60vh] flex flex-col justify-end bg-luga-surface dark:bg-luga-darkSurface border-b border-luga-border dark:border-luga-darkBorder overflow-hidden">
         <div className="absolute inset-0 w-full h-full">
           <ManagedImage
-            src={collection.coverImageUrl || (collection.coverSlotKey ? getMediaSlot(collection.coverSlotKey)?.imageUrl : undefined)}
+            src={resolvedMedia}
             slotKey={collection.coverSlotKey || `COLLECTION_${collection.id}`}
             aspectRatio="16:9"
             resolution="2560×1440px"
@@ -68,9 +72,17 @@ export default function CollectionDetailPage() {
             <span>BACK TO ALL ARCHIVES</span>
           </Link>
 
-          <div className="flex items-center gap-2 font-mono text-xs tracking-mega uppercase text-luga-gold">
-            <Compass className="w-3.5 h-3.5" />
-            <span>{collection.volumeNumber} // LIMITED RUN</span>
+          <div className="flex flex-wrap items-center gap-2 font-mono text-xs tracking-mega uppercase text-luga-gold">
+            <span className="flex items-center gap-1.5">
+              <Compass className="w-3.5 h-3.5" />
+              <span>{collection.volumeNumber} // LIMITED RUN</span>
+            </span>
+            {videoInfo.isVideo && (
+              <span className="px-2 py-0.5 bg-black/75 border border-white/20 text-[9px] text-white flex items-center gap-1 shadow-sm">
+                <Play className="w-2.5 h-2.5 text-luga-gold fill-luga-gold" />
+                <span>CINEMATIC FILM ({videoInfo.providerLabel.toUpperCase()})</span>
+              </span>
+            )}
           </div>
 
           <h1 className="font-editorial text-3xl sm:text-6xl lg:text-7xl uppercase tracking-tight font-light break-words">
